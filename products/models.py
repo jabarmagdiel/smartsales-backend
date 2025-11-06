@@ -32,6 +32,14 @@ class Price(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.price}"
 
+class AtributoProducto(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='atributos')
+    nombre = models.CharField(max_length=100)  # e.g., 'Tamaño de Pantalla', 'Material'
+    valor = models.CharField(max_length=200)  # e.g., '15.6 pulgadas', 'Aluminio'
+
+    def __str__(self):
+        return f"{self.product.name} - {self.nombre}: {self.valor}"
+
 class InventoryMovement(models.Model):
     MOVEMENT_TYPES = [
         ('IN', 'Entrada'),

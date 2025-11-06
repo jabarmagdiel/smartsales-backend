@@ -52,5 +52,5 @@ class CheckoutSerializer(serializers.Serializer):
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ('id', 'order', 'amount', 'status', 'transaction_id', 'created_at')
+        fields = ('id', 'order', 'amount', 'method', 'status', 'transaction_id', 'created_at')
         read_only_fields = ('id', 'created_at')

@@ -1,17 +1,24 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from .models import Category, Product, Price, InventoryMovement
 from .serializers import CategorySerializer, ProductSerializer, PriceSerializer, InventoryMovementSerializer
+from permissions import IsAdmin, IsOperator
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAdmin]
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [IsAdmin]
+
+    def get_queryset(self):
+        return Product.objects.prefetch_related('atributos')
 
     @action(detail=True, methods=['post'])
     def add_price(self, request, pk=None):
@@ -40,10 +47,12 @@ class ProductViewSet(viewsets.ModelViewSet):
 class PriceViewSet(viewsets.ModelViewSet):
     queryset = Price.objects.all()
     serializer_class = PriceSerializer
+    permission_classes = [IsAdmin]
 
 class InventoryMovementViewSet(viewsets.ModelViewSet):
     queryset = InventoryMovement.objects.all()
     serializer_class = InventoryMovementSerializer
+    permission_classes = [IsOperator]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

@@ -1,13 +1,16 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from .models import Return, Warranty
 from .serializers import ReturnSerializer, WarrantySerializer
+from permissions import IsClient
 
 class ReturnViewSet(viewsets.ModelViewSet):
     queryset = Return.objects.all()
     serializer_class = ReturnSerializer
+    permission_classes = [IsClient]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -27,3 +30,4 @@ class ReturnViewSet(viewsets.ModelViewSet):
 class WarrantyViewSet(viewsets.ModelViewSet):
     queryset = Warranty.objects.all()
     serializer_class = WarrantySerializer
+    permission_classes = [IsClient]

@@ -24,12 +24,19 @@ class Return(models.Model):
         return f"Return for Order {self.order.id} - {self.product.name}"
 
 class Warranty(models.Model):
+    RESOLUTION_STATUS_CHOICES = [
+        ('PENDING', 'Pendiente'),
+        ('RESOLVED', 'Resuelto'),
+        ('REJECTED', 'Rechazado'),
+    ]
+
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='warranties')
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='warranties')
     duration_months = models.PositiveIntegerField()
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     is_active = models.BooleanField(default=True)
+    resolution_status = models.CharField(max_length=10, choices=RESOLUTION_STATUS_CHOICES, default='PENDING')
 
     def __str__(self):
         return f"Warranty for {self.product.name}"

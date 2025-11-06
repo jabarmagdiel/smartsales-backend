@@ -3,9 +3,11 @@ from rest_framework.decorators import action, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from django.contrib.auth import authenticate
 from .models import User
 from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer, UserManagementSerializer
+from permissions import IsAdmin
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -34,7 +36,20 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
+class LogoutView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            refresh_token = request.data.get('refresh')
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            return Response({'message': 'Successfully logged out.'}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({'error': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
+
 class UserManagementViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserManagementSerializer
-    permission_classes = [IsAuthenticated]  # Add IsAdminUser permission in production
+    permission_classes = [IsAdmin]  # Add IsAdminUser permission in production

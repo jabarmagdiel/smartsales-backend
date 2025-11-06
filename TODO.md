@@ -1,19 +1,20 @@
-# API Testing Plan for backend_salessmart
+# TODO: Registro Exhaustivo de Todos los Modelos en el Panel Admin
 
-## Priority 1: Seguridad y Autenticación (CU6, CU4)
-- [ ] Test user registration: POST /api/v1/registro/
-- [ ] Test login and JWT generation: POST /api/v1/token/
-- [ ] Test admin endpoint rejection for non-admin: POST /api/v1/productos/ (expect 403 or 401)
+## Ciclo 1: Modelos Principales
+- [x] Registrar modelos en users/admin.py: User
+- [x] Registrar modelos en products/admin.py: Category, Product, Price, AtributoProducto, InventoryMovement
+- [x] Registrar modelos en sales/admin.py: Cart, CartItem, Order, OrderItem, Payment
+- [x] Registrar modelos en posventa/admin.py: Return, Warranty
 
-## Priority 2: Flujo Crítico de Inventario (CU3, CU1, CU10)
-- [ ] Test product creation: POST /api/v1/productos/
-- [ ] Test stock entry (IN movement): POST /api/v1/movimientos-inventario/
-- [ ] Test stock decrease (OUT movement): POST /api/v1/movimientos-inventario/
+## Ciclo 2: Modelos de Logs y Reportes
+- [x] Registrar modelos en logs/admin.py: LogEntry
+- [x] Registrar modelos en reportes/admin.py: ReporteDinamico
 
-## Priority 3: Flujo de Compra (CU7, CU8, CU9)
-- [ ] Test add to cart: POST /api/v1/carrito/add_item/
-- [ ] Test checkout: POST /api/v1/checkout/
-- [ ] Test payment processing: POST /api/v1/pago/
+## Ciclo 3: Modelos de IA
+- [x] Registrar modelos en ia/admin.py: ModeloConfiguracion, HistoricalSale, TrainingSession
+- [x] Registrar modelos en logistics/admin.py: Alert, Recommendation
 
-## Documentation
-- [ ] Compile results with curl commands, expected JSON, actual responses
+## Verificación Final
+- [x] Reiniciar el servidor con `python manage.py runserver`
+- [x] Acceder al panel de administración en /admin/ y verificar que todas las secciones de los 3 Ciclos sean visibles
+- [x] Probar login como admin y revisar las vistas de lista de cada modelo

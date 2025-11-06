@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import Category, Product, Price, InventoryMovement
+from .models import Category, Product, Price, InventoryMovement, AtributoProducto
+
+class AtributoProductoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AtributoProducto
+        fields = ('id', 'nombre', 'valor')
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,6 +13,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
+    atributos = AtributoProductoSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product

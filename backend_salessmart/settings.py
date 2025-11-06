@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,8 +24,12 @@ SECRET_KEY = 'django-insecure-zm!7q5*)v3*4d@2nkxd$+84i+&awgkz$r(x^%qeke*=b69f6l(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
+if DEBUG:
+    STATICFILES_DIRS = [
+        # Busca los archivos estáticos del admin y otros
+    ]
+    
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'your-production-domain.com']
 
 
 # Application definition
@@ -39,21 +43,27 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'channels',
     'products',
     'users',
     'sales',
     'logistics',
     'posventa',
+    'logs',
+    'reportes',
+    'ia',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'logs.middleware.LoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'backend_salessmart.urls'
@@ -74,15 +84,21 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend_salessmart.wsgi.application'
-
+# COMENTARIO AGREGADO: Punto de entrada para WebSockets (ASincrono)
+# Requerido por Django Channels para manejar el tráfico en tiempo real.
+ASGI_APPLICATION = 'backend_salessmart.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'smartsales_db',         # Debe ser el nombre de tu BD externa
+        'USER': 'postgres',             # O el usuario que uses
+        'PASSWORD': 'kellyduran2210', # Tu contraseña de la BD
+        'HOST': 'localhost',            # Si el servidor está en tu máquina
+        'PORT': '5432',                 # Puerto por defecto de PostgreSQL
     }
 }
 
@@ -136,7 +152,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -174,4 +190,18 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+
+    'BLACKLIST_ENABLED': True,
+}
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_collected') 
+
+# Directorios donde Django buscará archivos estáticos en desarrollo (opcional)
+STATICFILES_DIRS = [
+    # Puedes agregar rutas a carpetas 'static' que no estén dentro de apps
+]
+# Channels configuration
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
 }

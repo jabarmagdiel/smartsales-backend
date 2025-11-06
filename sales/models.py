@@ -62,6 +62,11 @@ class OrderItem(models.Model):
         return self.price * self.quantity
 
 class Payment(models.Model):
+    PAYMENT_METHOD_CHOICES = [
+        ('PAYPAL', 'PayPal'),
+        ('STRIPE', 'Stripe'),
+    ]
+
     PAYMENT_STATUS_CHOICES = [
         ('PENDING', 'Pendiente'),
         ('APPROVED', 'Aprobado'),
@@ -70,9 +75,10 @@ class Payment(models.Model):
 
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, default='PAYPAL')
     status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='PENDING')
     transaction_id = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Payment for Order {self.order.id}"
+        return f"Payment for Order {self.order.id} - {self.method}"

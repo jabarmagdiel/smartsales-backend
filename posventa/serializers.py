@@ -17,7 +17,7 @@ class WarrantySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Warranty
-        fields = ('id', 'product', 'product_name', 'order', 'order_id', 'duration_months', 'start_date', 'end_date', 'is_active', 'vigente')
+        fields = ('id', 'product', 'product_name', 'order', 'order_id', 'duration_months', 'start_date', 'end_date', 'is_active', 'resolution_status', 'vigente')
         read_only_fields = ('id',)
 
     def get_vigente(self, obj):
