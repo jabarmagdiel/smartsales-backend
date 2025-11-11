@@ -10,30 +10,61 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone', 'address', 'password')
-        read_only_fields = ('id', 'role',) # 'role' es read_only porque lo manejamos en 'create'
+        read_only_fields = ('id',)  # Removed 'role' to make it editable
 
     def create(self, validated_data):
-        # (Esta lógica de 'create' ya es correcta)
-        role = validated_data.pop('role', 'CLIENT') # Default a CLIENT (valor interno)
+        role = validated_data.pop('role', 'CLIENT')  # Default to CLIENT
         first_name = validated_data.pop('first_name', '')
         last_name = validated_data.pop('last_name', '')
         phone = validated_data.pop('phone', None)
         address = validated_data.pop('address', None)
-        
+
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email'),
             password=validated_data['password']
         )
-        
+
         user.role = role
         user.first_name = first_name
         user.last_name = last_name
         user.phone = phone
         user.address = address
+
+        # Set is_staff and is_superuser based on role
+        if role == 'ADMIN':
+            user.is_superuser = True
+            user.is_staff = True
+        elif role == 'OPERATOR':
+            user.is_staff = True
+            user.is_superuser = False
+        else:
+            user.is_staff = False
+            user.is_superuser = False
+
         user.save()
-        
         return user
+
+    def update(self, instance, validated_data):
+        role = validated_data.pop('role', instance.role)
+        instance.role = role
+
+        # Set is_staff and is_superuser based on role
+        if role == 'ADMIN':
+            instance.is_superuser = True
+            instance.is_staff = True
+        elif role == 'OPERATOR':
+            instance.is_staff = True
+            instance.is_superuser = False
+        else:
+            instance.is_staff = False
+            instance.is_superuser = False
+
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -64,26 +95,53 @@ class LoginSerializer(serializers.Serializer):
         return data
 
 
-# --- INICIO DE LA CORRECCIÓN (Error de Rol "CLIENT") ---
 class UserManagementSerializer(serializers.ModelSerializer):
-    # 1. Define 'role' como un campo calculado
-    role = serializers.SerializerMethodField()
+    role = serializers.CharField()
 
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone', 'address', 'is_active', 'date_joined')
         read_only_fields = ('id', 'date_joined')
 
-    # 2. Implementa la función que calcula el rol
-    def get_role(self, obj):
-        # Esta lógica asegura que los superusuarios SIEMPRE se muestren como 'Administrador'
-        if obj.is_superuser:
-            return 'Administrador'
-        if obj.is_staff:
-            return 'Operador'
-        # Si no es staff, usa el rol de la DB (ej: 'CLIENTE' o 'Cliente')
-        return obj.role 
-# --- FIN DE LA CORRECCIÓN ---
+    def create(self, validated_data):
+        role = validated_data.pop('role', 'CLIENT')
+        user = super().create(validated_data)
+        user.role = role
+
+        # Set is_staff and is_superuser based on role
+        if role == 'ADMIN':
+            user.is_superuser = True
+            user.is_staff = True
+        elif role == 'OPERATOR':
+            user.is_staff = True
+            user.is_superuser = False
+        else:
+            user.is_staff = False
+            user.is_superuser = False
+
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        role = validated_data.pop('role', instance.role)
+        instance.role = role
+
+        # Set is_staff and is_superuser based on role
+        if role == 'ADMIN':
+            instance.is_superuser = True
+            instance.is_staff = True
+        elif role == 'OPERATOR':
+            instance.is_staff = True
+            instance.is_superuser = False
+        else:
+            instance.is_staff = False
+            instance.is_superuser = False
+
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
