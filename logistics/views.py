@@ -6,18 +6,34 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+
 from django.db.models import Q
 from products.models import Product
 from ia.models import HistoricalSale
-from .models import Alert, Recommendation
-from .serializers import AlertSerializer, RecommendationSerializer
-from permissions import IsAdmin
+from .models import Alert, Recommendation, InventoryMovement # 1. Importa InventoryMovement
+from .serializers import (
+    AlertSerializer, 
+    RecommendationSerializer, 
+    InventoryMovementSerializer # 2. Importa el nuevo serializer
+)
+from users.permissions import IsAdminUser, IsOperator
+
+
 
 MODEL_PATH = 'ia_model.pkl'
 
+class InventoryMovementViewSet(viewsets.ModelViewSet):
+    """
+    Endpoint para ver y crear movimientos de inventario (CU3).
+    """
+    queryset = InventoryMovement.objects.all().order_by('-fecha_movimiento')
+    serializer_class = InventoryMovementSerializer
+    # Usamos el nombre corregido 'IsOperator'
+    permission_classes = [IsAuthenticated, (IsAdminUser | IsOperator)]  
+      
 class AlertViewSet(viewsets.ModelViewSet):
     serializer_class = AlertSerializer
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = Alert.objects.all().order_by('-created_at')
 
     @action(detail=False, methods=['post'])
@@ -104,7 +120,7 @@ class AlertViewSet(viewsets.ModelViewSet):
 
 class RecommendationViewSet(viewsets.ModelViewSet):
     serializer_class = RecommendationSerializer
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = Recommendation.objects.all().order_by('-created_at')
 
     @action(detail=False, methods=['post'])

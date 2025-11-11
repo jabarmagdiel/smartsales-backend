@@ -15,16 +15,20 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend_salessmart.settings')
 
 django.setup()
 
+from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 from django.urls import path
-from sales.consumers import OrderConsumer
+from sales.consumers import OrderConsumer, NotificationConsumer
 
 django_asgi_app = get_asgi_application()
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
-    "websocket": URLRouter([
-        path('ws/orders/', OrderConsumer.as_asgi()),
-    ]),
+    "websocket": AuthMiddlewareStack(
+        URLRouter([
+            path('ws/orders/', OrderConsumer.as_asgi()),
+            path('ws/notificaciones/', NotificationConsumer.as_asgi()),
+        ]),
+    ),
 })

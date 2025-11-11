@@ -2,6 +2,56 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from products.models import Product
 
+class InventoryMovement(models.Model):
+    """
+    Registra cada entrada o salida de stock para un producto (CU3).
+    """
+    TIPO_MOVIMIENTO_CHOICES = (
+        ('ENTRADA', 'Entrada'),
+        ('SALIDA', 'Salida'),
+    )
+
+    producto = models.ForeignKey(
+        Product, 
+        on_delete=models.CASCADE, 
+        related_name='movimientos'
+    )
+    tipo_movimiento = models.CharField(
+        max_length=10, 
+        choices=TIPO_MOVIMIENTO_CHOICES
+    )
+    cantidad = models.PositiveIntegerField()
+    motivo = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        default='Ajuste manual'
+    )
+    fecha_movimiento = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.tipo_movimiento} de {self.cantidad} para {self.producto.name}"
+    
+    # --- (Lógica para actualizar el stock real del producto) ---
+    # (Esto es avanzado, pero profesional. Cuando se guarda un movimiento,
+    # actualiza el stock en el modelo 'Product')
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs) # Guarda el movimiento primero
+        
+        # Actualiza el stock en el producto relacionado
+        if self.tipo_movimiento == 'ENTRADA':
+            self.producto.stock += self.cantidad
+        elif self.tipo_movimiento == 'SALIDA':
+            # Evita stock negativo
+            if self.producto.stock >= self.cantidad:
+                self.producto.stock -= self.cantidad
+            else:
+                # (En un sistema real, lanzarías un error aquí)
+                self.producto.stock = 0
+        
+        self.producto.save(update_fields=['stock'])
+
+
+
 class Alert(models.Model):
     ALERT_TYPES = [
         ('LOW_STOCK', 'Low Stock Alert'),

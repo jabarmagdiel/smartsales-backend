@@ -2,9 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from django.http import HttpResponse
 from .query_builder import parse_prompt, build_query
 from .models import ReporteDinamico
+from permissions import IsAdmin
 import json
 # from weasyprint import HTML  # Commented out due to installation issues on Windows
 from openpyxl import Workbook
@@ -15,6 +17,7 @@ class QueryReportView(APIView):
     Endpoint POST /api/v1/reportes/query/
     Recibe un prompt de texto y genera un reporte dinámico.
     """
+    permission_classes = [IsAuthenticated, IsAdmin]
 
     def post(self, request):
         prompt = request.data.get('prompt', '')
@@ -65,6 +68,7 @@ class GenerateReportView(APIView):
     Endpoint GET /api/v1/reportes/generate/
     Recibe query_id y formato (pdf, xlsx, json) y genera el archivo correspondiente.
     """
+    permission_classes = [IsAuthenticated, IsAdmin]
 
     def get(self, request):
         query_id = request.GET.get('query_id')

@@ -7,6 +7,7 @@ from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
@@ -14,11 +15,14 @@ import joblib
 import os
 from .models import HistoricalSale, ModeloConfiguracion, TrainingSession
 from products.models import Product
+from permissions import IsAdmin
 
 MODEL_PATH = 'ia_model.pkl'
 
 @method_decorator(csrf_exempt, name='dispatch')
 class GenerateDataView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
     def post(self, request):
         # Generate synthetic data
         products = list(Product.objects.all())
@@ -43,6 +47,8 @@ class GenerateDataView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TrainView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
     def post(self, request):
         # Load data
         sales = HistoricalSale.objects.all().values('date', 'product__id', 'product__category__id', 'quantity')
@@ -86,6 +92,8 @@ class TrainView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PredictView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
     def post(self, request):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
@@ -130,6 +138,8 @@ class PredictView(APIView):
         }, status=status.HTTP_200_OK)
 
 class StatusView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
     def get(self, request):
         session = TrainingSession.objects.last()
         if not session:

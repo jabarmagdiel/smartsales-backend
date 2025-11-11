@@ -5,17 +5,17 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from .models import Category, Product, Price, InventoryMovement
 from .serializers import CategorySerializer, ProductSerializer, PriceSerializer, InventoryMovementSerializer
-from permissions import IsAdmin, IsOperator
+from users.permissions import IsAdminUser, IsOperator
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get_queryset(self):
         return Product.objects.prefetch_related('atributos')
@@ -47,7 +47,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 class PriceViewSet(viewsets.ModelViewSet):
     queryset = Price.objects.all()
     serializer_class = PriceSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminUser]
 
 class InventoryMovementViewSet(viewsets.ModelViewSet):
     queryset = InventoryMovement.objects.all()

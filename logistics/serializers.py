@@ -1,20 +1,47 @@
+# logistics/serializers.py
 from rest_framework import serializers
-from .models import Alert, Recommendation
+from .models import InventoryMovement, Alert, Recommendation
+from products.models import Product 
 
+# --- SERIALIZADOR PARA LEER PRODUCTOS (USADO EN INVENTARIO) ---
+class ProductForInventorySerializer(serializers.ModelSerializer):
+    """Serializer simple para mostrar solo el nombre/sku del producto en el historial"""
+    class Meta:
+        model = Product
+        # --- CORRECCIÓN ---
+        # El modelo de Product usa 'name' (según tu código anterior).
+        fields = ['id', 'name', 'sku'] 
+        # --- FIN DE CORRECCIÓN ---
+
+class InventoryMovementSerializer(serializers.ModelSerializer):
+    # 'producto' será un objeto anidado (read-only)
+    producto = ProductForInventorySerializer(read_only=True)
+    
+    # 'producto_id' será usado para escribir (write-only)
+    producto_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(), source='producto', write_only=True
+    )
+
+    class Meta:
+        model = InventoryMovement
+        fields = [
+            'id', 
+            'producto', 
+            'producto_id',
+            'tipo_movimiento', 
+            'cantidad', 
+            'motivo', 
+            'fecha_movimiento'
+        ]
+        read_only_fields = ('fecha_movimiento',)
+
+# --- Serializadores existentes (Alertas y Recomendaciones) ---
 class AlertSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    category_name = serializers.CharField(source='product.category.name', read_only=True)
-
     class Meta:
         model = Alert
-        fields = ['id', 'product', 'product_name', 'category_name', 'alert_type', 'message',
-                 'threshold', 'current_stock', 'predicted_demand', 'created_at', 'resolved', 'resolved_at']
+        fields = '__all__'
 
 class RecommendationSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    category_name = serializers.CharField(source='product.category.name', read_only=True)
-
     class Meta:
         model = Recommendation
-        fields = ['id', 'product', 'product_name', 'category_name', 'recommended_stock',
-                 'reason', 'priority', 'created_at', 'implemented']
+        fields = '__all__'
