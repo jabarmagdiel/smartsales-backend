@@ -8,9 +8,20 @@ from .query_builder import parse_prompt, build_query
 from .models import ReporteDinamico
 from permissions import IsAdmin
 import json
-# from weasyprint import HTML  # Commented out due to installation issues on Windows
+import datetime
 from openpyxl import Workbook
 from io import BytesIO
+
+# --- (1) SOLUCIÓN PDF: Importar WeasyPrint ---
+# WeasyPrint es la librería para generar PDF desde HTML.
+try:
+    from weasyprint import HTML
+    WEASYPRINT_INSTALLED = True
+except ImportError:
+    WEASYPRINT_INSTALLED = False
+    print("ADVERTENCIA: WeasyPrint no está instalado. La generación de PDF fallará.")
+    print("Instálalo con: pip install weasyprint")
+
 
 class QueryReportView(APIView):
     """
@@ -34,28 +45,30 @@ class QueryReportView(APIView):
             # Ejecutar la consulta (limitada para preview)
             results = list(queryset.values(*select_fields)[:100])  # Limitar a 100 registros
 
-            # Convertir Decimal a float para serialización JSON
+            # --- Corrección de Serialización (Decimal y Datetime) ---
             for result in results:
                 for key, value in result.items():
-                    if hasattr(value, '__float__'):  # Decimal objects
+                    if hasattr(value, '__float__'):
                         result[key] = float(value)
+                    elif isinstance(value, (datetime.date, datetime.datetime)):
+                        result[key] = value.isoformat()
 
-            # Guardar en ReporteDinamico
-            consulta_str = str(queryset.query)  # Representación de la consulta
+            # Guardar en ReporteDinamico (los 'results' ya están limpios)
+            consulta_str = str(queryset.query)
             reporte = ReporteDinamico.objects.create(
                 prompt_original=prompt,
                 consulta_resultante=consulta_str,
-                results=results
+                results=results 
             )
 
             # Preparar respuesta
             response_data = {
-                'reporte_id': reporte.id,
+                'query_id': reporte.id, 
                 'parsed_data': parsed_data,
                 'query': consulta_str,
-                'results': results,
+                'results': results, 
                 'total_records': len(results),
-                'format': parsed_data['format']
+                'format': parsed_data.get('format', 'json')
             }
 
             return Response(response_data, status=status.HTTP_200_OK)
@@ -79,7 +92,11 @@ class GenerateReportView(APIView):
 
         try:
             reporte = ReporteDinamico.objects.get(id=query_id)
-            results = reporte.results
+            
+            if isinstance(reporte.results, str):
+                results = json.loads(reporte.results)
+            else:
+                results = reporte.results
 
             if formato == 'json':
                 # Paginación para JSON
@@ -88,33 +105,36 @@ class GenerateReportView(APIView):
                 page = paginator.paginate_queryset(results, request)
                 return paginator.get_paginated_response(page)
 
+            # --- (2) SOLUCIÓN PDF: Lógica de Generación Real ---
             elif formato == 'pdf':
-                # Generar PDF simple (placeholder - weasyprint not working on Windows)
-                # For now, return a simple text response indicating PDF generation
-                # In production, install weasyprint properly or use alternative library
-                pdf_content = f"PDF Report for Query ID {query_id}\n\n"
-                if results:
-                    headers = list(results[0].keys())
-                    pdf_content += "\t".join(headers) + "\n"
-                    for row in results:
-                        pdf_content += "\t".join(str(v) for v in row.values()) + "\n"
-
-                response = HttpResponse(pdf_content, content_type='application/pdf')
+                
+                if not WEASYPRINT_INSTALLED:
+                    # Si WeasyPrint no está instalado, devuelve un error claro.
+                    return Response(
+                        {'error': 'La generación de PDF no está configurada en el servidor (WeasyPrint no encontrado).'}, 
+                        status=status.HTTP_501_NOT_IMPLEMENTED
+                    )
+                
+                # Generar el contenido HTML de la tabla
+                html_content = self.generate_html_table(results)
+                
+                # Convertir HTML a PDF en memoria
+                pdf_file = HTML(string=html_content).write_pdf()
+                
+                # Crear la respuesta HTTP con el archivo PDF real
+                response = HttpResponse(pdf_file, content_type='application/pdf')
                 response['Content-Disposition'] = f'attachment; filename="reporte_{query_id}.pdf"'
                 return response
 
             elif formato == 'xlsx':
-                # Generar Excel con openpyxl
+                # Generar Excel con openpyxl (Esto ya funciona)
                 wb = Workbook()
                 ws = wb.active
                 ws.title = "Reporte"
 
                 if results:
-                    # Headers
                     headers = list(results[0].keys())
                     ws.append(headers)
-
-                    # Data
                     for row in results:
                         ws.append(list(row.values()))
 
@@ -135,8 +155,12 @@ class GenerateReportView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def generate_html_table(self, results):
-        """Genera HTML simple para el PDF."""
-        html = "<html><body><h1>Reporte Dinámico</h1><table border='1'><tr>"
+        """Genera HTML simple para el PDF. (Tu función original estaba bien)"""
+        html = "<html><head><style>"
+        html += "table { border-collapse: collapse; width: 100%; } "
+        html += "th, td { border: 1px solid black; padding: 8px; text-align: left; } "
+        html += "th { background-color: #f2f2f2; } "
+        html += "</style></head><body><h1>Reporte Dinámico</h1><table><tr>"
 
         if results:
             headers = list(results[0].keys())
