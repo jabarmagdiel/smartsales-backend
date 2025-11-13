@@ -11,7 +11,10 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['*']  # Temporal para Cloud Run
 
 # CORS
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    'https://smartsales-frontend-production.up.railway.app',
+]
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
