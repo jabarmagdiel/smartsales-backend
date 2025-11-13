@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "python manage.py migrate --settings=backend_salessmart.settings_railway && python manage.py collectstatic --noinput --settings=backend_salessmart.settings_railway && gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --keep-alive 5 --preload --access-logfile - --error-logfile - backend_salessmart.wsgi:application"
+healthcheckPath = "/api/health/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[environments.production]
+DJANGO_SETTINGS_MODULE = "backend_salessmart.settings_railway"

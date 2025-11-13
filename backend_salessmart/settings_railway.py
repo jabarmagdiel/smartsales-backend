@@ -96,21 +96,14 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Configuración de CORS para Railway
-CORS_ALLOWED_ORIGINS = [
-    # Frontend Web (Vercel u otro)
-    os.environ.get('FRONTEND_URL', 'http://localhost:3000'),
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://localhost:3000",
-    
-    # Para desarrollo local
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+# CONFIGURACIÓN CORS PARA RAILWAY - SIMPLIFICADA
+
+# Sobrescribir cualquier configuración CORS problemática
+CORS_ALLOWED_ORIGINS = []  # Vacío para evitar errores de validación
 
 # Para aplicación móvil
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 # Headers adicionales para móvil
 CORS_ALLOWED_HEADERS = [
