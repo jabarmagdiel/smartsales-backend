@@ -1,34 +1,40 @@
-# Usar imagen base de Python
+# Imagen base
 FROM python:3.11-slim
+
+# Configuración básica
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Directorio de trabajo
+WORKDIR /app
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    gcc \
+    build-essential \
     libpq-dev \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Establecer directorio de trabajo
-WORKDIR /app
-
-# Copiar requirements primero para aprovechar cache de Docker
+# Copiar dependencias
 COPY requirements.txt .
 
 # Instalar dependencias Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código de la aplicación
+# Copiar todo el proyecto
 COPY . .
 
-# Recopilar archivos estáticos
+# Recoger archivos estáticos
 RUN python manage.py collectstatic --noinput --settings=backend_salessmart.settings
 
-# Crear usuario no-root para seguridad
-RUN useradd --create-home --shell /bin/bash app && chown -R app:app /app
-USER app
+# Cloud Run necesita que la app escuche en $PORT (por defecto 8080)
+ENV PORT=8080
 
-# Exponer puerto 8080 (requerido por Cloud Run)
+# Exponer el puerto (opcional)
 EXPOSE 8080
 
-# Comando para ejecutar la aplicación
-CMD exec gunicorn --bind 0.0.0.0:8080 --workers 1 --threads 8 --timeout 0 backend_salessmart.wsgi:application
+# Comando de ejecución con Gunicorn
+CMD exec gunicorn backend_salessmart.wsgi:application \
+    --bind 0.0.0.0:$PORT \
+    --workers 2 \
+    --threads 4 \
+    --timeout 0
