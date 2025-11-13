@@ -8,12 +8,28 @@ from django.utils.dateparse import parse_date # Importar para las fechas
 from django.http import HttpResponse
 import csv
 from io import BytesIO
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.lib import colors
-from openpyxl import Workbook
 import datetime
+
+# Importaciones condicionales para reportes
+try:
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib import colors
+    from openpyxl import Workbook
+    HAS_REPORT_LIBS = True
+except ImportError:
+    HAS_REPORT_LIBS = False
+    SimpleDocTemplate = None
+    Paragraph = None
+    Spacer = None
+    Table = None
+    TableStyle = None
+    getSampleStyleSheet = None
+    letter = None
+    A4 = None
+    colors = None
+    Workbook = None
 
 class LogEntryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LogEntry.objects.all().order_by('-timestamp')
@@ -97,6 +113,12 @@ class LogEntryViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response({'detail': 'Error generando CSV', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         elif fmt == 'xlsx':
+            if not HAS_REPORT_LIBS or not Workbook:
+                return Response({
+                    'detail': 'Excel export not available',
+                    'error': 'openpyxl library is required for Excel exports'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
             try:
                 wb = Workbook()
                 ws = wb.active
@@ -130,6 +152,12 @@ class LogEntryViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response({'detail': 'Error generando Excel', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         elif fmt == 'pdf':
+            if not HAS_REPORT_LIBS or not SimpleDocTemplate:
+                return Response({
+                    'detail': 'PDF export not available',
+                    'error': 'reportlab library is required for PDF exports'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
             try:
                 buffer = BytesIO()
                 doc = SimpleDocTemplate(buffer, pagesize=A4)

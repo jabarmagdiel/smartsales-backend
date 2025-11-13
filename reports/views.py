@@ -11,22 +11,25 @@ import re
 import csv
 import io
 from django.template.loader import render_to_string
+# Importaciones condicionales para reportes
 try:
     from weasyprint import HTML, CSS
-    WEASYPRINT_AVAILABLE = True
-except (ImportError, OSError) as e:
-    print(f"⚠️ WeasyPrint no disponible: {e}")
-    WEASYPRINT_AVAILABLE = False
-    HTML = None
-    CSS = None
-
-try:
     import openpyxl
     from openpyxl.utils.dataframe import dataframe_to_rows
     import pandas as pd
+    HAS_REPORT_LIBS = True
+    WEASYPRINT_AVAILABLE = True
     EXCEL_AVAILABLE = True
-except ImportError:
+except (ImportError, OSError) as e:
+    print(f"⚠️ Librerías de reportes no disponibles: {e}")
+    HAS_REPORT_LIBS = False
+    WEASYPRINT_AVAILABLE = False
     EXCEL_AVAILABLE = False
+    HTML = None
+    CSS = None
+    openpyxl = None
+    dataframe_to_rows = None
+    pd = None
 
 from .models import ReportTemplate, GeneratedReport, VoiceQuery
 from .serializers import ReportTemplateSerializer, GeneratedReportSerializer, VoiceQuerySerializer

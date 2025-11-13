@@ -9,17 +9,20 @@ from .models import ReporteDinamico
 from permissions import IsAdmin
 import json
 import datetime
-from openpyxl import Workbook
 from io import BytesIO
 
-# --- (1) SOLUCIÓN PDF: Importar WeasyPrint ---
-# WeasyPrint es la librería para generar PDF desde HTML.
+# Importaciones condicionales para reportes
 try:
+    from openpyxl import Workbook
     from weasyprint import HTML
+    HAS_REPORT_LIBS = True
     WEASYPRINT_INSTALLED = True
-except Exception:
+except (ImportError, OSError) as e:
+    HAS_REPORT_LIBS = False
     WEASYPRINT_INSTALLED = False
-    print("ADVERTENCIA: WeasyPrint no está completamente configurado. La generación de PDF puede fallar.")
+    Workbook = None
+    HTML = None
+    print("ADVERTENCIA: WeasyPrint y openpyxl no están disponibles. La generación de reportes PDF/Excel puede fallar.")
     print("Sigue las instrucciones: https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation")
 
 
@@ -172,7 +175,13 @@ class GenerateReportView(APIView):
                 return response
 
             elif formato == 'xlsx':
-                # Generar Excel con openpyxl (Esto ya funciona)
+                if not HAS_REPORT_LIBS or not Workbook:
+                    return Response({
+                        'error': 'Excel export not available',
+                        'message': 'openpyxl library is required for Excel exports'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                    
+                # Generar Excel con openpyxl
                 wb = Workbook()
                 ws = wb.active
                 ws.title = "Reporte"
