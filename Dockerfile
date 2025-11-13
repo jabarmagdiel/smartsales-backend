@@ -1,30 +1,36 @@
-# Usar imagen base de Python
 FROM python:3.11-slim
 
-# Instalar dependencias del sistema
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Dependencias del sistema
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
     curl \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
-# Establecer directorio de trabajo
-WORKDIR /app
-
-# Copiar requirements primero
+# Copiar requirements
 COPY requirements.txt .
 
-# Instalar dependencias Python
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código del backend
+# Copiar todo el proyecto
 COPY . .
 
-# Recopilar estáticos
-RUN python manage.py collectstatic --noinput --settings=backend_salessmart.settings
+# Archivos estáticos
+RUN python manage.py collectstatic --noinput
 
-# Exponer puerto requerido por Cloud Run
+# Cloud Run usa el puerto dinámico $PORT
+ENV PORT=8080
 EXPOSE 8080
 
-# Iniciar Gunicorn correctamente
-CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "backend_salessmart.wsgi:application"]
+# Comando final
+CMD exec gunicorn backend_salessmart.wsgi:application \
+    --bind 0.0.0.0:$PORT \
+    --workers 3 \
+    --threads 2 \
+    --timeout 0
