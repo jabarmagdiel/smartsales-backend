@@ -33,7 +33,7 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Comando de ejecución con Daphne (ASGI server para WebSockets)
-CMD exec daphne backend_salessmart.asgi:application \
-    --bind 0.0.0.0 \
-    --port $PORT \
-    --verbosity 1
+CMD python manage.py migrate --settings=backend_salessmart.settings_railway && \
+    python manage.py collectstatic --noinput --settings=backend_salessmart.settings_railway && \
+    daphne backend_salessmart.asgi:application --bind 0.0.0.0 --port $PORT
+
