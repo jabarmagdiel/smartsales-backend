@@ -1,14 +1,19 @@
 import os
 from .settings import *
 
-# Importar dj_database_url solo si está disponible
+# -------------------------------------------------------
+# IMPORTS
+# -------------------------------------------------------
 try:
     import dj_database_url
     HAS_DJ_DATABASE_URL = True
 except ImportError:
     HAS_DJ_DATABASE_URL = False
 
-# Sobrescribir INSTALLED_APPS sin channels para Railway
+
+# -------------------------------------------------------
+# DJANGO APPS CONFIGURADAS PARA PRODUCCIÓN
+# -------------------------------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -17,13 +22,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # External apps
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    # 'channels',  # Deshabilitado para Railway
     'drf_yasg',
 
+    # Local apps
     'products',
     'users',
     'sales',
@@ -35,10 +41,25 @@ INSTALLED_APPS = [
     'reports',
 ]
 
-# Configuración de producción para Railway
-DEBUG = False
 
-# Configuración de templates para Django Admin
+# -------------------------------------------------------
+# CONFIGURACIÓN GENERAL RAILWAY
+# -------------------------------------------------------
+DEBUG = False
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-change-this")
+
+ALLOWED_HOSTS = [
+    ".railway.app",
+    ".up.railway.app",
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+]
+
+
+# -------------------------------------------------------
+# TEMPLATE SETTINGS
+# -------------------------------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -55,184 +76,134 @@ TEMPLATES = [
     },
 ]
 
-# Configuración de seguridad
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-in-production')
 
-# Configuración de usuario personalizado
-AUTH_USER_MODEL = 'users.User'
+# -------------------------------------------------------
+# BASE DE DATOS PARA RAILWAY
+# -------------------------------------------------------
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Hosts permitidos para Railway
-ALLOWED_HOSTS = [
-    '.railway.app',
-    '.up.railway.app',
-    'localhost',
-    '127.0.0.1',
-    '0.0.0.0',
-]
+if DATABASE_URL:
+    # FIX de Railway: cambia postgresql:// → postgres://
+    if DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgres://", 1)
 
-# Configuración de base de datos para Railway
-# Railway proporciona DATABASE_URL automáticamente
-if 'DATABASE_URL' in os.environ and HAS_DJ_DATABASE_URL:
     DATABASES = {
-        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+        "default": dj_database_url.parse(DATABASE_URL)
     }
 else:
-    # Fallback para desarrollo local
+    # Fallback local
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
-# Configuración de archivos estáticos para Railway
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Whitenoise para servir archivos estáticos
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# -------------------------------------------------------
+# ARCHIVOS ESTÁTICOS
+# -------------------------------------------------------
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-# Configuración de archivos media
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# CONFIGURACIÓN CORS PARA RAILWAY - SIMPLIFICADA
 
-# Sobrescribir cualquier configuración CORS problemática
-CORS_ALLOWED_ORIGINS = []  # Vacío para evitar errores de validación
+# -------------------------------------------------------
+# ARCHIVOS MEDIA
+# -------------------------------------------------------
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-# Para aplicación móvil
+
+# -------------------------------------------------------
+# CORS CONFIG PARA API Y APLICACIONES
+# -------------------------------------------------------
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-# Headers adicionales para móvil
 CORS_ALLOWED_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-    'x-api-key',
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "x-api-key",
 ]
 
-# Métodos permitidos para API REST
 CORS_ALLOWED_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
 ]
 
-# Configuración adicional de CORS
-CORS_ALLOW_CREDENTIALS = True
 
-# Configuración de seguridad para Railway
+# -------------------------------------------------------
+# SEGURIDAD EN PRODUCCIÓN
+# -------------------------------------------------------
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
+X_FRAME_OPTIONS = "DENY"
 
-# Solo activar HTTPS en producción real
-if os.environ.get('RAILWAY_ENVIRONMENT') == 'production':
+if os.environ.get("RAILWAY_ENVIRONMENT") == "production":
     SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
 
-# Configuración de sesiones
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = True
 
-# Configuración de logging para Railway
+# -------------------------------------------------------
+# JSON Web Tokens (si los usas)
+# -------------------------------------------------------
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
+}
+
+AUTH_USER_MODEL = "users.User"
+
+
+# -------------------------------------------------------
+# LOGGING PARA DEPURAR EN RAILWAY
+# -------------------------------------------------------
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'backend_salessmart': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
     },
 }
 
-# Configuración de cache
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-    }
-}
 
-# Configuración de email
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# -------------------------------------------------------
+# WSGI (modo estable para producción)
+# -------------------------------------------------------
+WSGI_APPLICATION = "backend_salessmart.wsgi.application"
 
-# Configuración de timezone
-USE_TZ = True
-TIME_ZONE = 'UTC'
+# ASGI solo si activas websockets
+# ASGI_APPLICATION = "backend_salessmart.asgi.application"
 
-# Configuración de internacionalización
-LANGUAGE_CODE = 'es-es'
-USE_I18N = True
-USE_L10N = True
 
-# Configuración WSGI para Railway (más estable)
-WSGI_APPLICATION = 'backend_salessmart.wsgi.application'
-
-# WebSockets deshabilitados temporalmente para Railway
-# Descomentar cuando agregues Redis
-# ASGI_APPLICATION = 'backend_salessmart.asgi.application'
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
-#     }
-# }
-
-# En producción, usar Redis si está disponible
-# if 'REDIS_URL' in os.environ:
-#     CHANNEL_LAYERS = {
-#         'default': {
-#             'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#             'CONFIG': {
-#                 "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-#             },
-#         },
-#     }
-
-print(f"🚀 Configuración de Railway cargada")
+# -------------------------------------------------------
+# PRINTS PARA VER EN LOGS DE RAILWAY
+# -------------------------------------------------------
+print("🚀 Configuración Railway cargada")
 print(f"🔧 DEBUG: {DEBUG}")
-print(f"🗄️ Base de datos: {'PostgreSQL (Railway)' if 'DATABASE_URL' in os.environ else 'SQLite (desarrollo)'}")
+print(f"🗄️ Base de datos: {DATABASES['default']}")
 print(f"🌐 ALLOWED_HOSTS: {ALLOWED_HOSTS}")
-print(f"📡 WebSockets: {'Redis' if 'REDIS_URL' in os.environ else 'InMemory'}")

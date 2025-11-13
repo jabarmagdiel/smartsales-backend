@@ -1,1 +1,1 @@
-web: python manage.py migrate --settings=backend_salessmart.settings_railway && python manage.py collectstatic --noinput --settings=backend_salessmart.settings_railway && daphne backend_salessmart.asgi:application --bind 0.0.0.0 --port $PORT
+DJANGO_SETTINGS_MODULE = backend_salessmart.settings_railway
