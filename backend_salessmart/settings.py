@@ -19,16 +19,31 @@ ALLOWED_HOSTS = [
     '*'  # Temporal para desarrollo
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    'https://smartsales-frontend-production.up.railway.app',
-    'http://localhost:3000',  # Para desarrollo local
-    'http://127.0.0.1:3000',
+# CONFIGURACIÓN CORS SIMPLIFICADA
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# Configuración adicional para CORS
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
-# También permitir todos los orígenes temporalmente para desarrollo
-CORS_ALLOW_ALL_ORIGINS = True
-
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
 
 # APLICACIONES INSTALADAS
 INSTALLED_APPS = [
