@@ -1,7 +1,15 @@
 import os
-import joblib
-import pandas as pd
 from datetime import datetime, timedelta
+
+# Importaciones condicionales para machine learning
+try:
+    import joblib
+    import pandas as pd
+    HAS_ML_LIBS = True
+except ImportError:
+    HAS_ML_LIBS = False
+    joblib = None
+    pd = None
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -43,8 +51,12 @@ class AlertViewSet(viewsets.ModelViewSet):
 
         # Load IA model if available
         model = None
-        if os.path.exists(MODEL_PATH):
-            model = joblib.load(MODEL_PATH)
+        if HAS_ML_LIBS and os.path.exists(MODEL_PATH):
+            try:
+                model = joblib.load(MODEL_PATH)
+            except Exception as e:
+                print(f"Error loading ML model: {e}")
+                model = None
 
         products = Product.objects.all()
         for product in products:
@@ -82,17 +94,21 @@ class AlertViewSet(viewsets.ModelViewSet):
                     alerts_created += 1
 
             # Check prediction discrepancy if model available
-            if model:
-                # Predict next week's demand
-                next_week = datetime.now().date() + timedelta(days=7)
-                features = {
-                    'month': [next_week.month],
-                    'day_of_week': [next_week.weekday()],
-                    'product_id': [product.id],
-                    'category_id': [product.category.id]
-                }
-                predicted = model.predict(pd.DataFrame(features))[0]
-                discrepancy = abs(product.stock - predicted)
+            if model and HAS_ML_LIBS and pd:
+                try:
+                    # Predict next week's demand
+                    next_week = datetime.now().date() + timedelta(days=7)
+                    features = {
+                        'month': [next_week.month],
+                        'day_of_week': [next_week.weekday()],
+                        'product_id': [product.id],
+                        'category_id': [product.category.id]
+                    }
+                    predicted = model.predict(pd.DataFrame(features))[0]
+                    discrepancy = abs(product.stock - predicted)
+                except Exception as e:
+                    print(f"Error making prediction: {e}")
+                    continue
 
                 if discrepancy > product.min_stock:
                     Alert.objects.get_or_create(
@@ -126,28 +142,42 @@ class RecommendationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def generate_recommendations(self, request):
         """Generate stock recommendations using IA predictions"""
+        if not HAS_ML_LIBS:
+            return Response({
+                'error': 'Machine learning libraries not available',
+                'message': 'joblib and pandas are required for recommendations'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         recommendations_created = 0
 
         # Load IA model
         if not os.path.exists(MODEL_PATH):
             return Response({'error': 'IA model not available'}, status=status.HTTP_400_BAD_REQUEST)
 
-        model = joblib.load(MODEL_PATH)
+        try:
+            model = joblib.load(MODEL_PATH)
+        except Exception as e:
+            return Response({'error': f'Error loading model: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
         products = Product.objects.all()
 
         for product in products:
-            # Predict demand for next 30 days
-            predictions = []
-            for i in range(30):
-                future_date = datetime.now().date() + timedelta(days=i)
-                features = {
-                    'month': [future_date.month],
-                    'day_of_week': [future_date.weekday()],
-                    'product_id': [product.id],
-                    'category_id': [product.category.id]
-                }
-                pred = model.predict(pd.DataFrame(features))[0]
-                predictions.append(pred)
+            try:
+                # Predict demand for next 30 days
+                predictions = []
+                for i in range(30):
+                    future_date = datetime.now().date() + timedelta(days=i)
+                    features = {
+                        'month': [future_date.month],
+                        'day_of_week': [future_date.weekday()],
+                        'product_id': [product.id],
+                        'category_id': [product.category.id]
+                    }
+                    pred = model.predict(pd.DataFrame(features))[0]
+                    predictions.append(pred)
+            except Exception as e:
+                print(f"Error predicting for product {product.id}: {e}")
+                continue
 
             avg_predicted_demand = sum(predictions) / len(predictions)
             recommended_stock = int(avg_predicted_demand * 1.2)  # 20% buffer

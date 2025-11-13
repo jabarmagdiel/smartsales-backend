@@ -1,5 +1,24 @@
-import pandas as pd
-import numpy as np
+# Importaciones condicionales para machine learning
+try:
+    import pandas as pd
+    import numpy as np
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+    from sklearn.model_selection import train_test_split
+    import joblib
+    HAS_ML_LIBS = True
+except ImportError:
+    HAS_ML_LIBS = False
+    pd = None
+    np = None
+    RandomForestRegressor = None
+    mean_squared_error = None
+    mean_absolute_error = None
+    r2_score = None
+    train_test_split = None
+    joblib = None
+
+import os
 from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -8,11 +27,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.model_selection import train_test_split
-import joblib
-import os
 from .models import HistoricalSale, ModeloConfiguracion, TrainingSession
 from products.models import Product
 from permissions import IsAdmin
@@ -27,6 +41,12 @@ class ConfigureModelView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
     def post(self, request):
+        if not HAS_ML_LIBS:
+            return Response({
+                'error': 'Machine learning libraries not available',
+                'message': 'scikit-learn, pandas, numpy, and joblib are required for ML features'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         n_estimators = request.data.get('n_estimators')
         date_start = request.data.get('date_range_start')
         date_end = request.data.get('date_range_end')
@@ -65,6 +85,12 @@ class GenerateDataView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
     def post(self, request):
+        if not HAS_ML_LIBS:
+            return Response({
+                'error': 'Machine learning libraries not available',
+                'message': 'numpy is required for data generation'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         # Generate synthetic data
         products = list(Product.objects.all())
         if not products:
@@ -91,6 +117,12 @@ class TrainView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
     def post(self, request):
+        if not HAS_ML_LIBS:
+            return Response({
+                'error': 'Machine learning libraries not available',
+                'message': 'scikit-learn, pandas, and joblib are required for training'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         # Load data
         sales = HistoricalSale.objects.all().values('date', 'product__id', 'product__category__id', 'quantity')
         df = pd.DataFrame(list(sales))
@@ -136,6 +168,12 @@ class PredictView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
     def post(self, request):
+        if not HAS_ML_LIBS:
+            return Response({
+                'error': 'Machine learning libraries not available',
+                'message': 'pandas and joblib are required for predictions'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
         if not start_date or not end_date:
