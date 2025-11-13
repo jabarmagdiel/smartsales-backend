@@ -7,3 +7,4 @@ channels==4.1.0
 drf-yasg==1.21.8
 whitenoise==6.8.2
 Pillow==10.4.0
+gunicorn==22.0.0
