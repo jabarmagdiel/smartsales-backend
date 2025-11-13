@@ -56,17 +56,16 @@ ROOT_URLCONF = 'backend_salessmart.urls'
 WSGI_APPLICATION = 'backend_salessmart.wsgi.application'
 ASGI_APPLICATION = 'backend_salessmart.asgi.application'
 
-# 🚀 BASE DE DATOS
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-    }
+    'default': dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
+
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_collected')
