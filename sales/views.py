@@ -11,8 +11,15 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from django.http import HttpResponse
 from io import BytesIO
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+# Importaciones condicionales para channels
+try:
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+    HAS_CHANNELS = True
+except ImportError:
+    HAS_CHANNELS = False
+    get_channel_layer = None
+    async_to_sync = None
 from .models import Cart, CartItem, Order, OrderItem, Payment, Return
 from django.core.exceptions import MultipleObjectsReturned
 from products.models import Product
@@ -166,16 +173,23 @@ class CheckoutView(viewsets.ViewSet):
             # Crear garantías automáticas de 1 año para todos los productos
             order.create_warranties()
 
-        # Send WebSocket signal for new order
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            "orders",
-            {
-                "type": "order_created",
-                "message": f"New order #{order.id} created by {request.user.username}",
-                "order_id": order.id
-            }
-        )
+        # Send WebSocket signal for new order (if channels available)
+        if HAS_CHANNELS and get_channel_layer:
+            try:
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    "orders",
+                    {
+                        "type": "order_created",
+                        "message": f"New order #{order.id} created by {request.user.username}",
+                        "order_id": order.id
+                    }
+                )
+            except Exception as e:
+                # Log error but don't fail the order creation
+                print(f"WebSocket notification failed: {e}")
+        else:
+            print("WebSocket notifications disabled (channels not available)")
 
         order_serializer = OrderSerializer(order)
         try:

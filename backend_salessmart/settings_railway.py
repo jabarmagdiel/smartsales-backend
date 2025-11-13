@@ -38,8 +38,28 @@ INSTALLED_APPS = [
 # Configuración de producción para Railway
 DEBUG = False
 
+# Configuración de templates para Django Admin
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
 # Configuración de seguridad
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-in-production')
+
+# Configuración de usuario personalizado
+AUTH_USER_MODEL = 'users.User'
 
 # Hosts permitidos para Railway
 ALLOWED_HOSTS = [
