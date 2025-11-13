@@ -32,9 +32,7 @@ ENV PORT=8080
 # Exponer el puerto (opcional)
 EXPOSE 8080
 
-# Comando de ejecución con Gunicorn
-CMD exec gunicorn backend_salessmart.wsgi:application \
-    --bind 0.0.0.0:$PORT \
-    --workers 2 \
-    --threads 4 \
-    --timeout 0
+# Comando de ejecución con Daphne (ASGI server para WebSockets)
+CMD exec daphne backend_salessmart.asgi:application \
+    --bind 0.0.0.0 \
+    --port $PORT

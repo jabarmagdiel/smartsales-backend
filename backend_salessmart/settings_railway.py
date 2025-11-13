@@ -162,7 +162,29 @@ LANGUAGE_CODE = 'es-es'
 USE_I18N = True
 USE_L10N = True
 
+# Configuración de ASGI para WebSockets
+ASGI_APPLICATION = 'backend_salessmart.asgi.application'
+
+# Configuración de Channel Layers para WebSockets
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
+
+# En producción, usar Redis si está disponible
+if 'REDIS_URL' in os.environ:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+            },
+        },
+    }
+
 print(f"🚀 Configuración de Railway cargada")
 print(f"🔧 DEBUG: {DEBUG}")
 print(f"🗄️ Base de datos: {'PostgreSQL (Railway)' if 'DATABASE_URL' in os.environ else 'SQLite (desarrollo)'}")
 print(f"🌐 ALLOWED_HOSTS: {ALLOWED_HOSTS}")
+print(f"📡 WebSockets: {'Redis' if 'REDIS_URL' in os.environ else 'InMemory'}")

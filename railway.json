@@ -5,7 +5,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python manage.py migrate --settings=backend_salessmart.settings_railway && python manage.py collectstatic --noinput --settings=backend_salessmart.settings_railway && gunicorn backend_salessmart.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 0",
+    "startCommand": "python manage.py migrate --settings=backend_salessmart.settings_railway && python manage.py collectstatic --noinput --settings=backend_salessmart.settings_railway && daphne backend_salessmart.asgi:application --bind 0.0.0.0 --port $PORT",
     "healthcheckPath": "/api/health/",
     "healthcheckTimeout": 100
   }

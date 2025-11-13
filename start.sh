@@ -24,11 +24,9 @@ else:
 EOF
 
 # Iniciar servidor
-echo "🌐 Iniciando servidor Gunicorn..."
-exec gunicorn backend_salessmart.wsgi:application \
-    --bind 0.0.0.0:$PORT \
-    --workers 2 \
-    --threads 4 \
-    --timeout 0 \
-    --access-logfile - \
-    --error-logfile -
+echo "🌐 Iniciando servidor Daphne (ASGI)..."
+exec daphne backend_salessmart.asgi:application \
+    --bind 0.0.0.0 \
+    --port $PORT \
+    --access-log \
+    --proxy-headers
