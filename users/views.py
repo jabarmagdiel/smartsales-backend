@@ -24,6 +24,16 @@ class UserViewSet(viewsets.ModelViewSet):
     # Solo los Admins pueden ver y gestionar la lista de usuarios
     permission_classes = [IsAuthenticated, IsAdminUser]
 
+class ClientViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Lista de clientes (rol CLIENT) para Admin/Operador. Expone /api/v1/clientes/ (CU4).
+    """
+    serializer_class = UserManagementSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser | IsOperator]
+
+    def get_queryset(self):
+        return User.objects.filter(role='CLIENT').order_by('username')
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer

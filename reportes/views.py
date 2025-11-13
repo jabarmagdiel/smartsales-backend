@@ -17,10 +17,10 @@ from io import BytesIO
 try:
     from weasyprint import HTML
     WEASYPRINT_INSTALLED = True
-except ImportError:
+except Exception:
     WEASYPRINT_INSTALLED = False
-    print("ADVERTENCIA: WeasyPrint no está instalado. La generación de PDF fallará.")
-    print("Instálalo con: pip install weasyprint")
+    print("ADVERTENCIA: WeasyPrint no está completamente configurado. La generación de PDF puede fallar.")
+    print("Sigue las instrucciones: https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation")
 
 
 class QueryReportView(APIView):
@@ -85,7 +85,8 @@ class GenerateReportView(APIView):
 
     def get(self, request):
         query_id = request.GET.get('query_id')
-        formato = request.GET.get('formato', 'json')
+        # Acepta ambos nombres: 'formato' (ES) y 'format' (EN)
+        formato = request.GET.get('formato') or request.GET.get('format') or 'json'
 
         if not query_id:
             return Response({'error': 'query_id is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -105,24 +106,68 @@ class GenerateReportView(APIView):
                 page = paginator.paginate_queryset(results, request)
                 return paginator.get_paginated_response(page)
 
-            # --- (2) SOLUCIÓN PDF: Lógica de Generación Real ---
+            # --- (2) SOLUCIÓN PDF: Usando ReportLab ---
             elif formato == 'pdf':
+                from reportlab.pdfgen import canvas
+                from reportlab.lib.pagesizes import letter, A4
+                from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+                from reportlab.lib import colors
+                from io import BytesIO
                 
-                if not WEASYPRINT_INSTALLED:
-                    # Si WeasyPrint no está instalado, devuelve un error claro.
-                    return Response(
-                        {'error': 'La generación de PDF no está configurada en el servidor (WeasyPrint no encontrado).'}, 
-                        status=status.HTTP_501_NOT_IMPLEMENTED
-                    )
+                # Crear buffer en memoria
+                buffer = BytesIO()
                 
-                # Generar el contenido HTML de la tabla
-                html_content = self.generate_html_table(results)
+                # Crear documento PDF
+                doc = SimpleDocTemplate(buffer, pagesize=A4)
+                styles = getSampleStyleSheet()
+                elements = []
                 
-                # Convertir HTML a PDF en memoria
-                pdf_file = HTML(string=html_content).write_pdf()
+                # Título
+                title = Paragraph(f"Reporte Dinámico - {reporte.prompt}", styles['Title'])
+                elements.append(title)
+                elements.append(Spacer(1, 12))
                 
-                # Crear la respuesta HTTP con el archivo PDF real
-                response = HttpResponse(pdf_file, content_type='application/pdf')
+                # Información del reporte
+                info = Paragraph(f"Generado el: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal'])
+                elements.append(info)
+                elements.append(Spacer(1, 12))
+                
+                if results:
+                    # Crear tabla con los datos
+                    headers = list(results[0].keys())
+                    data = [headers]
+                    
+                    for row in results:
+                        data.append([str(value) for value in row.values()])
+                    
+                    # Crear tabla
+                    table = Table(data)
+                    table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (-1, 0), 10),
+                        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                        ('FONTSIZE', (0, 1), (-1, -1), 8),
+                    ]))
+                    elements.append(table)
+                else:
+                    no_data = Paragraph("No se encontraron datos para mostrar.", styles['Normal'])
+                    elements.append(no_data)
+                
+                # Construir PDF
+                doc.build(elements)
+                
+                # Obtener contenido del buffer
+                pdf_content = buffer.getvalue()
+                buffer.close()
+                
+                # Crear respuesta HTTP
+                response = HttpResponse(pdf_content, content_type='application/pdf')
                 response['Content-Disposition'] = f'attachment; filename="reporte_{query_id}.pdf"'
                 return response
 

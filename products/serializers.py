@@ -19,11 +19,17 @@ class ProductSerializer(serializers.ModelSerializer):
     nombre = serializers.CharField(source='name')
     precio = serializers.CharField(source='price')
     stock_actual = serializers.IntegerField(source='stock')
+    meses_garantia = serializers.IntegerField(source='warranty_months')
     atributos = AtributoProductoSerializer(many=True, read_only=True)
+    image = serializers.ImageField(required=False, allow_null=True)
+    # Compatibilidad de solo lectura para clientes que esperan 'name' y 'stock'
+    name = serializers.CharField(read_only=True)
+    stock = serializers.IntegerField(read_only=True)
+    warranty_months = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Product
-        fields = ('id', 'nombre', 'categoria', 'categoria_id', 'precio', 'stock_actual', 'min_stock', 'atributos', 'sku', 'description', 'created_at', 'updated_at')
+        fields = ('id', 'nombre', 'name', 'categoria', 'categoria_id', 'precio', 'stock', 'stock_actual', 'min_stock', 'meses_garantia', 'warranty_months', 'atributos', 'sku', 'description', 'image', 'created_at', 'updated_at')
         read_only_fields = ('created_at', 'updated_at')
 
 class PriceSerializer(serializers.ModelSerializer):

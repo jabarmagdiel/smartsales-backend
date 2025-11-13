@@ -16,6 +16,8 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
     min_stock = models.PositiveIntegerField(default=0)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    warranty_months = models.PositiveIntegerField(default=12, validators=[MinValueValidator(0)], help_text="Tiempo de garantía en meses")
+    image = models.ImageField(upload_to='products/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

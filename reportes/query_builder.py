@@ -37,7 +37,32 @@ def parse_prompt(prompt):
     """
     prompt_lower = prompt.lower()
 
-    # Extraer campos a mostrar
+    # Detectar consultas específicas comunes
+    if 'productos más vendidos' in prompt_lower or 'productos mas vendidos' in prompt_lower:
+        return {
+            'query_type': 'top_products',
+            'fields': ['items__product__name', 'total_quantity', 'total_sales'],
+            'filters': {},
+            'format': 'json'
+        }
+    
+    if 'inventario actual' in prompt_lower or 'stock actual' in prompt_lower:
+        return {
+            'query_type': 'inventory',
+            'fields': ['name', 'sku', 'stock', 'price'],
+            'filters': {},
+            'format': 'json'
+        }
+    
+    if 'clientes registrados' in prompt_lower and ('año' in prompt_lower or 'este año' in prompt_lower):
+        return {
+            'query_type': 'customers_this_year',
+            'fields': ['username', 'first_name', 'last_name', 'email', 'date_joined'],
+            'filters': {'year': datetime.now().year},
+            'format': 'json'
+        }
+
+    # Extraer campos a mostrar (lógica original)
     fields = []
     for key, field in FIELD_MAPPINGS.items():
         if key in prompt_lower:
@@ -106,6 +131,34 @@ def build_query(parsed_data):
     """
     Construye la consulta ORM basada en los datos parseados.
     """
+    from django.contrib.auth.models import User
+    from products.models import Product
+    from django.db.models import Sum, Count
+    
+    # Manejar consultas específicas
+    if parsed_data.get('query_type') == 'top_products':
+        # Productos más vendidos
+        from sales.models import OrderItem
+        queryset = OrderItem.objects.values('product__name', 'product__sku').annotate(
+            total_quantity=Sum('quantity'),
+            total_sales=Sum('price')
+        ).order_by('-total_quantity')[:10]
+        
+        return list(queryset)
+    
+    elif parsed_data.get('query_type') == 'inventory':
+        # Inventario actual
+        queryset = Product.objects.values('name', 'sku', 'stock', 'price')
+        return list(queryset)
+    
+    elif parsed_data.get('query_type') == 'customers_this_year':
+        # Clientes registrados este año
+        year = parsed_data['filters'].get('year', datetime.now().year)
+        queryset = User.objects.filter(
+            date_joined__year=year
+        ).values('username', 'first_name', 'last_name', 'email', 'date_joined')
+        return list(queryset)
+
     fields = parsed_data['fields']
     filters = parsed_data['filters']
 

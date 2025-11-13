@@ -67,10 +67,47 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    current_password = serializers.CharField(write_only=True, required=False)
+    new_password = serializers.CharField(write_only=True, required=False)
+    
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone', 'address')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone', 'address', 'current_password', 'new_password')
         read_only_fields = ('id', 'username', 'role')
+    
+    def validate(self, data):
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        
+        # Si se proporciona una nueva contraseña, validar la actual
+        if new_password:
+            if not current_password:
+                raise serializers.ValidationError({'current_password': 'Se requiere la contraseña actual para cambiarla.'})
+            
+            user = self.instance
+            if not user.check_password(current_password):
+                raise serializers.ValidationError({'current_password': 'La contraseña actual es incorrecta.'})
+            
+            if len(new_password) < 6:
+                raise serializers.ValidationError({'new_password': 'La nueva contraseña debe tener al menos 6 caracteres.'})
+        
+        return data
+    
+    def update(self, instance, validated_data):
+        # Extraer campos de contraseña antes de la actualización normal
+        current_password = validated_data.pop('current_password', None)
+        new_password = validated_data.pop('new_password', None)
+        
+        # Actualizar campos normales
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        # Cambiar contraseña si se proporcionó
+        if new_password:
+            instance.set_password(new_password)
+        
+        instance.save()
+        return instance
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()

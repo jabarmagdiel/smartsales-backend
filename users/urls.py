@@ -8,7 +8,8 @@ from .views import (
     LogoutView, 
     UserManagementViewSet, 
     UserCreateView, # Esta es la vista que crea el usuario
-    UserViewSet
+    UserViewSet,
+    ClientViewSet
 )
 
 router = DefaultRouter()
@@ -16,6 +17,7 @@ router = DefaultRouter()
 # Nombres base (basename) únicos para los ViewSets
 router.register(r'usuarios', UserManagementViewSet, basename='user-management')
 router.register(r'users', UserViewSet, basename='user-detail') # Para el GET de Clientes (Admin)
+router.register(r'clientes', ClientViewSet, basename='clientes')
 
 urlpatterns = [
     # --- CORRECCIÓN DEL 404 ---

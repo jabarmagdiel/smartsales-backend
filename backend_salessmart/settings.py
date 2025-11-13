@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'channels',
+    'drf_yasg',
     'products',
     'users',
     'sales',
@@ -61,6 +62,7 @@ INSTALLED_APPS = [
     'logs',
     'reportes',
     'ia',
+    'reports',
 ]
 
 MIDDLEWARE = [
@@ -103,11 +105,11 @@ ASGI_APPLICATION = 'backend_salessmart.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'smartsales_db',         # Debe ser el nombre de tu BD externa
-        'USER': 'postgres',             # O el usuario que uses
-        'PASSWORD': 'kellyduran2210', # Tu contraseña de la BD
-        'HOST': 'localhost',            # Si el servidor está en tu máquina
-        'PORT': '5432',                 # Puerto por defecto de PostgreSQL
+        'NAME': 'smartsales_db',
+        'USER': 'postgres',
+        'PASSWORD': 'KellyDuran2210*',
+        'HOST': '34.38.132.155',
+        'PORT': '5432',
     }
 }
 
@@ -208,6 +210,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_collected')
 STATICFILES_DIRS = [
     # Puedes agregar rutas a carpetas 'static' que no estén dentro de apps
 ]
+
+# Media (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Channels configuration
 CHANNEL_LAYERS = {
     'default': {

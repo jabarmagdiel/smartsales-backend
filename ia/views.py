@@ -19,6 +19,47 @@ from permissions import IsAdmin
 
 MODEL_PATH = 'ia_model.pkl'
 
+class ConfigureModelView(APIView):
+    """
+    Configura parámetros del modelo predictivo (CU21).
+    POST body: { n_estimators, date_range_start, date_range_end }
+    """
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def post(self, request):
+        n_estimators = request.data.get('n_estimators')
+        date_start = request.data.get('date_range_start')
+        date_end = request.data.get('date_range_end')
+
+        if not all([n_estimators, date_start, date_end]):
+            return Response({"error": "n_estimators, date_range_start y date_range_end son requeridos"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            n_estimators = int(n_estimators)
+            date_start = datetime.fromisoformat(date_start).date()
+            date_end = datetime.fromisoformat(date_end).date()
+        except Exception:
+            return Response({"error": "Parámetros inválidos"}, status=status.HTTP_400_BAD_REQUEST)
+
+        config, _ = ModeloConfiguracion.objects.get_or_create(id=1, defaults={
+            'n_estimators': n_estimators,
+            'date_range_start': date_start,
+            'date_range_end': date_end,
+        })
+        config.n_estimators = n_estimators
+        config.date_range_start = date_start
+        config.date_range_end = date_end
+        config.save()
+
+        return Response({
+            "message": "Configuración actualizada",
+            "data": {
+                "n_estimators": config.n_estimators,
+                "date_range_start": config.date_range_start,
+                "date_range_end": config.date_range_end
+            }
+        }, status=status.HTTP_200_OK)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class GenerateDataView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
