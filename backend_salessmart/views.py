@@ -1,7 +1,7 @@
 from django.http import JsonResponse, FileResponse, HttpResponse
 from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from permissions import IsAdmin
 from django.conf import settings
@@ -74,16 +74,18 @@ def root_view(request):
     })
 
 @api_view(['GET'])
+@permission_classes([AllowAny])  # Hacer el endpoint público para Railway healthcheck
 def health_check(request):
     """
-    Health check endpoint for Railway - Simplified
+    Health check endpoint for Railway - Public access
     """
     try:
         return JsonResponse({
             "status": "healthy",
             "service": "SmartSales Backend",
             "timestamp": timezone.now().isoformat(),
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "database": "connected"
         })
     except Exception as e:
         return JsonResponse({
