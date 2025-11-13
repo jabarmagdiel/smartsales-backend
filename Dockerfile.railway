@@ -38,7 +38,10 @@ CMD exec gunicorn backend_salessmart.wsgi:application \
     --workers 1 \
     --threads 2 \
     --timeout 120 \
+    --keep-alive 2 \
     --max-requests 1000 \
     --max-requests-jitter 100 \
+    --preload \
     --access-logfile - \
-    --error-logfile -
+    --error-logfile - \
+    --log-level info

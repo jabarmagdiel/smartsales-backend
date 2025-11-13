@@ -76,18 +76,14 @@ def root_view(request):
 @api_view(['GET'])
 def health_check(request):
     """
-    Health check endpoint for Railway
+    Health check endpoint for Railway - Simplified
     """
     try:
-        # Test database connection
-        from django.db import connection
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-        
         return JsonResponse({
             "status": "healthy",
-            "database": "connected",
-            "timestamp": timezone.now().isoformat()
+            "service": "SmartSales Backend",
+            "timestamp": timezone.now().isoformat(),
+            "version": "1.0.0"
         })
     except Exception as e:
         return JsonResponse({
