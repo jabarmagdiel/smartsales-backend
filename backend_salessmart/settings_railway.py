@@ -1,6 +1,39 @@
 import os
-import dj_database_url
 from .settings import *
+
+# Importar dj_database_url solo si está disponible
+try:
+    import dj_database_url
+    HAS_DJ_DATABASE_URL = True
+except ImportError:
+    HAS_DJ_DATABASE_URL = False
+
+# Sobrescribir INSTALLED_APPS sin channels para Railway
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    'corsheaders',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    # 'channels',  # Deshabilitado para Railway
+    'drf_yasg',
+
+    'products',
+    'users',
+    'sales',
+    'logistics',
+    'posventa',
+    'logs',
+    'reportes',
+    'ia',
+    'reports',
+]
 
 # Configuración de producción para Railway
 DEBUG = False
@@ -19,7 +52,7 @@ ALLOWED_HOSTS = [
 
 # Configuración de base de datos para Railway
 # Railway proporciona DATABASE_URL automáticamente
-if 'DATABASE_URL' in os.environ:
+if 'DATABASE_URL' in os.environ and HAS_DJ_DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
     }
