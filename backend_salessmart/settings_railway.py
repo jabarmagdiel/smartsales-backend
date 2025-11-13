@@ -1,53 +1,30 @@
 import os
+import dj_database_url
 from .settings import *
 
-# Configuración de producción para Google Cloud
+# Configuración de producción para Railway
 DEBUG = False
 
-# Obtener PROJECT_ID de las variables de entorno
-PROJECT_ID = os.environ.get('GOOGLE_CLOUD_PROJECT')
-
-# Función para obtener secretos de Google Secret Manager
-def get_secret(secret_name):
-    """Obtener secreto de Google Secret Manager"""
-    try:
-        from google.cloud import secretmanager
-        client = secretmanager.SecretManagerServiceClient()
-        name = f"projects/{PROJECT_ID}/secrets/{secret_name}/versions/latest"
-        response = client.access_secret_version(request={"name": name})
-        return response.payload.data.decode("UTF-8")
-    except Exception as e:
-        print(f"Error obteniendo secreto {secret_name}: {e}")
-        # Fallback a variables de entorno para desarrollo
-        return os.environ.get(secret_name.upper().replace('-', '_'))
-
 # Configuración de seguridad
-SECRET_KEY = get_secret('django-secret-key') or 'fallback-secret-key-for-development'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-in-production')
 
-# Hosts permitidos
+# Hosts permitidos para Railway
 ALLOWED_HOSTS = [
-    '.run.app',  # Dominios de Cloud Run
-    '.googleapis.com',
+    '.railway.app',
+    '.up.railway.app',
     'localhost',
     '127.0.0.1',
     '0.0.0.0',
 ]
 
-# Configuración de base de datos para Cloud SQL
-if os.environ.get('GAE_APPLICATION', None):
-    # Producción en Google Cloud
+# Configuración de base de datos para Railway
+# Railway proporciona DATABASE_URL automáticamente
+if 'DATABASE_URL' in os.environ:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'smartsales',
-            'USER': 'smartsales_user',
-            'PASSWORD': get_secret('database-password'),
-            'HOST': '/cloudsql/YOUR_CONNECTION_NAME',  # Reemplazar con CONNECTION_NAME real
-            'PORT': '5432',
-        }
+        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
     }
 else:
-    # Desarrollo local o fallback
+    # Fallback para desarrollo local
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -55,29 +32,32 @@ else:
         }
     }
 
-# Configuración de archivos estáticos
+# Configuración de archivos estáticos para Railway
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Whitenoise para servir archivos estáticos
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Configuración de archivos media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Configuración de CORS para WEB y MÓVIL
+# Configuración de CORS para Railway
 CORS_ALLOWED_ORIGINS = [
-    # Frontend Web (Next.js)
-    "https://smartsales-frontend.vercel.app",  # Reemplazar con tu dominio frontend
-    "http://localhost:3000",  # Desarrollo local web
+    # Frontend Web (Vercel u otro)
+    os.environ.get('FRONTEND_URL', 'http://localhost:3000'),
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://localhost:3000",
     
     # Para desarrollo local
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
 
-# Para aplicación móvil, permitir todos los orígenes en desarrollo
-# En producción, la app móvil no envía Origin header
-CORS_ALLOW_ALL_ORIGINS = True  # Necesario para aplicaciones móviles
+# Para aplicación móvil
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Headers adicionales para móvil
 CORS_ALLOWED_HEADERS = [
@@ -90,7 +70,7 @@ CORS_ALLOWED_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'x-api-key',  # Para móvil
+    'x-api-key',
 ]
 
 # Métodos permitidos para API REST
@@ -106,21 +86,25 @@ CORS_ALLOWED_METHODS = [
 # Configuración adicional de CORS
 CORS_ALLOW_CREDENTIALS = True
 
-# Configuración de seguridad adicional
+# Configuración de seguridad para Railway
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
-SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+
+# Solo activar HTTPS en producción real
+if os.environ.get('RAILWAY_ENVIRONMENT') == 'production':
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Configuración de sesiones
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 
-# Configuración de logging para Cloud Run
+# Configuración de logging para Railway
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -158,7 +142,7 @@ LOGGING = {
     },
 }
 
-# Configuración de cache (opcional, para mejor performance)
+# Configuración de cache
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -166,7 +150,7 @@ CACHES = {
     }
 }
 
-# Configuración de email (opcional)
+# Configuración de email
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Configuración de timezone
@@ -178,6 +162,7 @@ LANGUAGE_CODE = 'es-es'
 USE_I18N = True
 USE_L10N = True
 
-print(f"🚀 Configuración de producción cargada para proyecto: {PROJECT_ID}")
+print(f"🚀 Configuración de Railway cargada")
 print(f"🔧 DEBUG: {DEBUG}")
-print(f"🗄️ Base de datos: {'Cloud SQL' if os.environ.get('GAE_APPLICATION') else 'SQLite (desarrollo)'}")
+print(f"🗄️ Base de datos: {'PostgreSQL (Railway)' if 'DATABASE_URL' in os.environ else 'SQLite (desarrollo)'}")
+print(f"🌐 ALLOWED_HOSTS: {ALLOWED_HOSTS}")

@@ -18,3 +18,10 @@ db.sqlite3
 
 # IDE/Editor (VS Code)
 .vscode/
+
+# Railway
+.railway/
+
+# Archivos temporales
+*.tmp
+*.temp

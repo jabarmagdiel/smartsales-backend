@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar dependencias
-COPY requirements.txt .
+COPY requirements-railway.txt requirements.txt
 
 # Instalar dependencias Python
 RUN pip install --no-cache-dir -r requirements.txt
@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Recoger archivos estáticos
-RUN python manage.py collectstatic --noinput --settings=backend_salessmart.settings
+RUN python manage.py collectstatic --noinput --settings=backend_salessmart.settings_railway
 
 # Cloud Run necesita que la app escuche en $PORT (por defecto 8080)
 ENV PORT=8080

@@ -1,0 +1,37 @@
+# Dependencias base de Django
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+djangorestframework-simplejwt==5.3.0
+django-filter==23.3
+
+# Base de datos
+psycopg2-binary==2.9.7
+dj-database-url==2.1.0
+
+# Servidor WSGI para producción
+gunicorn==21.2.0
+
+# Utilidades
+python-decouple==3.8
+Pillow==10.0.1
+requests==2.31.0
+
+# Para reportes
+reportlab==4.0.4
+xlsxwriter==3.1.9
+
+# Seguridad adicional
+cryptography==41.0.7
+
+# Utilidades de fecha y hora
+python-dateutil==2.8.2
+
+# Para manejo de archivos estáticos en producción
+whitenoise==6.6.0
+
+# Machine Learning (opcional, comentar si causa problemas)
+scikit-learn==1.3.2
+pandas==2.1.3
+numpy==1.25.2
+joblib==1.3.2

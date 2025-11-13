@@ -30,6 +30,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 urlpatterns = [
     path('', views.root_view, name='root'),
+    path('api/health/', views.health_check, name='health_check'),
     path('admin/', admin.site.urls),
     path('admin/backup/', views.backup_database, name='backup_database'),
     
