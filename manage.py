@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+import os
 import sys
-from django.core.management import execute_from_command_line
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend_salessmart.settings")
-os.environ.setdefault("PORT", "8080")  # Asegúrate de usar la variable de entorno PORT
-
-execute_from_command_line(sys.argv)
 
 def main():
     """Run administrative tasks."""
