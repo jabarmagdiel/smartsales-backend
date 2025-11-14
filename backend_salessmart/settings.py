@@ -1,7 +1,13 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+import os
+from django.core.management import execute_from_command_line
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend_salessmart.settings")
+os.environ.setdefault("PORT", "8080")  # Asegúrate de usar la variable de entorno PORT
+
+execute_from_command_line(sys.argv)
 # CONFIGURACIÓN BASE
 BASE_DIR = Path(__file__).resolve().parent.parent
 
