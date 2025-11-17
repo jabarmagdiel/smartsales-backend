@@ -11,10 +11,13 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # HOSTS Y CORS
 ALLOWED_HOSTS = [
-    ".run.app",        # permite cualquier subdominio de Cloud Run
-    "localhost",       
-    "127.0.0.1",  # Temporal para desarrollo
+    ".run.app",
+    ".a.run.app",
+    ".googleusercontent.com",
+    "localhost",
+    "127.0.0.1",
 ]
+
 
 # CONFIGURACIÓN CORS SIMPLIFICADA
 CORS_ALLOW_ALL_ORIGINS = True
