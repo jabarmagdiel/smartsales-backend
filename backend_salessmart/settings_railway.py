@@ -10,6 +10,35 @@ try:
 except ImportError:
     HAS_DJ_DATABASE_URL = False
 
+# Verificar disponibilidad de librerías de reportes
+try:
+    import weasyprint
+    WEASYPRINT_AVAILABLE = True
+    print("✅ WeasyPrint disponible para PDFs")
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+    print("⚠️ WeasyPrint no disponible - PDFs limitados")
+
+try:
+    import openpyxl
+    from openpyxl import Workbook
+    EXCEL_AVAILABLE = True
+    print("✅ OpenPyXL disponible para Excel")
+except ImportError:
+    EXCEL_AVAILABLE = False
+    print("⚠️ OpenPyXL no disponible - Excel limitado")
+
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib import colors
+    REPORTLAB_AVAILABLE = True
+    print("✅ ReportLab disponible para PDFs")
+except ImportError:
+    REPORTLAB_AVAILABLE = False
+    print("⚠️ ReportLab no disponible - PDFs limitados")
+
 
 # -------------------------------------------------------
 # DJANGO APPS CONFIGURADAS PARA PRODUCCIÓN

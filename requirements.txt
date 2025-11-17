@@ -9,3 +9,14 @@ whitenoise==6.8.2
 Pillow==10.4.0
 gunicorn==22.0.0
 dj-database-url==2.1.0
+
+# Librerías para generación de reportes
+WeasyPrint==62.3
+openpyxl==3.1.2
+reportlab==4.2.2
+
+# Dependencias adicionales para WeasyPrint en Railway
+cffi==1.16.0
+pycparser==2.21
+cairocffi==1.6.1
+CairoSVG==2.7.1

@@ -1,0 +1,36 @@
+[providers]
+python = "3.11"
+
+[variables]
+DJANGO_SETTINGS_MODULE = "backend_salessmart.settings_railway"
+PYTHONPATH = "."
+PORT = "8000"
+
+[phases.setup]
+nixPkgs = [
+  "python311",
+  "python311Packages.pip",
+  "gcc",
+  "glib",
+  "cairo",
+  "pango",
+  "gdk-pixbuf",
+  "libffi",
+  "pkg-config",
+  "fontconfig",
+  "freetype"
+]
+
+[phases.install]
+cmds = [
+  "pip install --upgrade pip",
+  "pip install -r requirements.txt"
+]
+
+[phases.build]
+cmds = [
+  "python manage.py collectstatic --noinput --settings=backend_salessmart.settings_railway"
+]
+
+[start]
+cmd = "gunicorn backend_salessmart.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --keep-alive 5"
