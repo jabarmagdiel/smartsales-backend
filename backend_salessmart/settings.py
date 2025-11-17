@@ -11,12 +11,13 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # HOSTS Y CORS
 ALLOWED_HOSTS = [
+    "smartsales-backend-783403173685.europe-west1.run.app",
+    ".europe-west1.run.app",
     ".run.app",
-    ".a.run.app",
-    ".googleusercontent.com",
     "localhost",
     "127.0.0.1",
 ]
+
 
 
 # CONFIGURACIÓN CORS SIMPLIFICADA
