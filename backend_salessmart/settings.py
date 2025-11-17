@@ -11,7 +11,9 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # HOSTS Y CORS
 ALLOWED_HOSTS = [
-    '*'  # Temporal para desarrollo
+    ".run.app",        # permite cualquier subdominio de Cloud Run
+    "localhost",       
+    "127.0.0.1",  # Temporal para desarrollo
 ]
 
 # CONFIGURACIÓN CORS SIMPLIFICADA
