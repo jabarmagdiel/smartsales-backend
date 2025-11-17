@@ -77,13 +77,9 @@ INSTALLED_APPS = [
 DEBUG = False
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-change-this")
 
-ALLOWED_HOSTS = [
-    ".railway.app",
-    ".up.railway.app",
-    "localhost",
-    "127.0.0.1",
-    "0.0.0.0",
-]
+ALLOWED_HOSTS = ["*"]
+
+
 
 
 # -------------------------------------------------------

@@ -11,13 +11,14 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # HOSTS Y CORS
 ALLOWED_HOSTS = [
-    '.railway.app',
-    '.up.railway.app', 
-    'localhost',
-    '127.0.0.1',
-    '0.0.0.0',
-    '*'  # Temporal para desarrollo
+    "smartsales-backend-783403173685.europe-west1.run.app",
+    ".europe-west1.run.app",
+    ".run.app",
+    "localhost",
+    "127.0.0.1",
 ]
+
+
 
 # CONFIGURACIÓN CORS SIMPLIFICADA
 CORS_ALLOW_ALL_ORIGINS = True
