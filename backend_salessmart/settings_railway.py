@@ -87,8 +87,12 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://*.run.app",
     "https://smartsales-backend-783403173685.europe-west1.run.app",
+    "https://stellar-rejoicing-production.up.railway.app",
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "https://stellar-rejoicing-production.up.railway.app",
+]
 
 
 # -------------------------------------------------------
@@ -155,13 +159,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # -------------------------------------------------------
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "https://stellar-rejoicing-production.up.railway.app",
-]
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://stellar-rejoicing-production.up.railway.app",
-]
 
 CORS_ALLOWED_HEADERS = [
     "accept",
