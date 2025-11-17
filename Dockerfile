@@ -19,6 +19,7 @@ COPY . .
 ENV PORT=8080
 
 EXPOSE 8080
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 CMD python3 manage.py migrate --settings=backend_salessmart.settings_railway && \
     python3 manage.py createadmin --settings=backend_salessmart.settings_railway && \
