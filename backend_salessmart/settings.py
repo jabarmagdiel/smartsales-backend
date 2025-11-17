@@ -11,11 +11,6 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # HOSTS Y CORS
 ALLOWED_HOSTS = [
-    '.railway.app',
-    '.up.railway.app', 
-    'localhost',
-    '127.0.0.1',
-    '0.0.0.0',
     '*'  # Temporal para desarrollo
 ]
 
