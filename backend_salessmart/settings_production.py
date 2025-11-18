@@ -34,17 +34,26 @@ ALLOWED_HOSTS = [
 ]
 
 # Configuración de base de datos para Cloud SQL
-# SIEMPRE usar PostgreSQL en settings_production.py
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'smartsales_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'KellyDuran2210*'),
-        'HOST': os.environ.get('DB_HOST', '34.38.132.155'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+if os.environ.get('GAE_APPLICATION', None):
+    # Producción en Google Cloud
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'smartsales_db'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'KellyDuran2210*'),
+            'HOST': os.environ.get('DB_HOST', '34.38.132.155'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    # Desarrollo local o fallback
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
@@ -56,11 +65,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Configuración de CORS para WEB y MÓVIL
 CORS_ALLOWED_ORIGINS = [
-    # Backend propio (para Railway frontend)
-    "https://smartsales-backend-783403173685.europe-west1.run.app",
-    
     # Frontend Web (Next.js)
     "https://smartsales-frontend.vercel.app",  # Reemplazar con tu dominio frontend
+    "https://smartsales-backend-783403173685.europe-west1.run.app",
     "http://localhost:3000",  # Desarrollo local web
     "http://127.0.0.1:3000",
     
@@ -69,14 +76,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 
-# Para aplicación móvil, permitir todos los orígenes
-# Las apps móviles no siempre envían Origin header correctamente
+# Para aplicación móvil, permitir todos los orígenes en desarrollo
+# En producción, la app móvil no envía Origin header
 CORS_ALLOW_ALL_ORIGINS = True  # Necesario para aplicaciones móviles
-
-# Configuración específica para móviles
 CORS_ALLOW_CREDENTIALS = True
 CORS_PREFLIGHT_MAX_AGE = 86400
-
 # Headers adicionales para móvil
 CORS_ALLOWED_HEADERS = [
     'accept',
