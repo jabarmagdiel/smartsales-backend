@@ -79,7 +79,8 @@ CORS_ALLOWED_ORIGINS = [
 # Para aplicación móvil, permitir todos los orígenes en desarrollo
 # En producción, la app móvil no envía Origin header
 CORS_ALLOW_ALL_ORIGINS = True  # Necesario para aplicaciones móviles
-
+CORS_ALLOW_CREDENTIALS = True
+CORS_PREFLIGHT_MAX_AGE = 86400
 # Headers adicionales para móvil
 CORS_ALLOWED_HEADERS = [
     'accept',
