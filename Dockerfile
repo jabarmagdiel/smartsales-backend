@@ -22,7 +22,7 @@ ENV FORCE_POSTGRESQL=true
 EXPOSE 8080
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-CMD python3 manage.py migrate --settings=backend_salessmart.settings_production && \
+CMD python3 check_migrations.py && \
     python3 manage.py collectstatic --noinput --settings=backend_salessmart.settings_production && \
     daphne backend_salessmart.asgi:application --bind 0.0.0.0 --port $PORT
 
