@@ -182,7 +182,19 @@ DATABASES = {
     }
 }
 
+# Configuración de archivos estáticos y media para producción
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuración de WhiteNoise para archivos estáticos
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 print(f"🚀 Configuración de producción cargada para proyecto: {PROJECT_ID}")
 print(f"🔧 DEBUG: {DEBUG}")
 print(f"🗄️ Base de datos: PostgreSQL (Cloud SQL) - FORZADO")
 print(f"🔧 DATABASES final: {DATABASES['default']['ENGINE']}")
+print(f"📁 MEDIA_URL: {MEDIA_URL}")
+print(f"📁 MEDIA_ROOT: {MEDIA_ROOT}")
