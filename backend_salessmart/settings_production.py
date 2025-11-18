@@ -1,4 +1,5 @@
 import os
+# NO importar settings.py completo para evitar conflictos de DATABASES
 from .settings import *
 
 # Configuración de producción para Google Cloud
@@ -34,7 +35,7 @@ ALLOWED_HOSTS = [
 ]
 
 # Configuración de base de datos para Cloud SQL
-# SIEMPRE usar PostgreSQL en settings_production.py
+# FORZAR PostgreSQL - redefinir después de importar settings.py
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -45,6 +46,9 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
+
+# Verificar que la configuración de PostgreSQL se mantenga
+print(f"🔧 DATABASES configurado: {DATABASES['default']['ENGINE']}")
 
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'

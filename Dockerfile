@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV PORT=8080
+ENV FORCE_POSTGRESQL=true
 
 EXPOSE 8080
 RUN ln -s /usr/bin/python3 /usr/bin/python
