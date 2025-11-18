@@ -34,26 +34,17 @@ ALLOWED_HOSTS = [
 ]
 
 # Configuración de base de datos para Cloud SQL
-if os.environ.get('GAE_APPLICATION', None):
-    # Producción en Google Cloud
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME', 'smartsales_db'),
-            'USER': os.environ.get('DB_USER', 'postgres'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', 'KellyDuran2210*'),
-            'HOST': os.environ.get('DB_HOST', '34.38.132.155'),
-            'PORT': os.environ.get('DB_PORT', '5432'),
-        }
+# SIEMPRE usar PostgreSQL en settings_production.py
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'smartsales_db'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'KellyDuran2210*'),
+        'HOST': os.environ.get('DB_HOST', '34.38.132.155'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
-else:
-    # Desarrollo local o fallback
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
@@ -182,4 +173,4 @@ USE_L10N = True
 
 print(f"🚀 Configuración de producción cargada para proyecto: {PROJECT_ID}")
 print(f"🔧 DEBUG: {DEBUG}")
-print(f"🗄️ Base de datos: {'Cloud SQL' if os.environ.get('GAE_APPLICATION') else 'SQLite (desarrollo)'}")
+print(f"🗄️ Base de datos: PostgreSQL (Cloud SQL)")
