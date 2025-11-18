@@ -182,12 +182,60 @@ DATABASES = {
     }
 }
 
-# Configuración de archivos estáticos y media para producción
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# ============================================================
+#  ARCHIVOS ESTÁTICOS PARA PRODUCCIÓN (WhiteNoise)
+# ============================================================
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATICFILES_STORAGE = (
+    'whitenoise.storage.CompressedManifestStaticFilesStorage'
+)
+
+
+# ============================================================
+#  CONFIGURACIÓN DE GOOGLE CLOUD STORAGE PARA MEDIA
+# ============================================================
+
+# Usa django-storages con Google Cloud
+DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+
+# Nombre del bucket creado en Google Cloud Storage
+GS_BUCKET_NAME = "smartsales-media"   # <-- reemplazar si tu bucket se llama diferente
+
+# Todos los archivos que subas serán públicos
+GS_DEFAULT_ACL = "publicRead"
+
+# URL pública base para servir imágenes
+MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+
+# Cloud Storage no usa MEDIA_ROOT
+MEDIA_ROOT = None
+
+
+# ============================================================
+#  DEBUG DESACTIVADO EN PRODUCCIÓN
+# ============================================================
+
+DEBUG = False
+
+
+# ============================================================
+#  MOSTRAR CONFIGURACIÓN EN LOGS (Opcional)
+# ============================================================
+
+print("====== CONFIGURACIÓN DE PRODUCCIÓN CARGADA ======")
+print("DEBUG:", DEBUG)
+print("STATIC_URL:", STATIC_URL)
+print("STATIC_ROOT:", STATIC_ROOT)
+print("MEDIA_URL:", MEDIA_URL)
+print("BUCKET:", GS_BUCKET_NAME)
+print("================================================")
+
 
 # Configuración de WhiteNoise para archivos estáticos
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
