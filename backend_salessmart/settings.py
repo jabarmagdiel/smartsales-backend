@@ -153,12 +153,13 @@ REST_FRAMEWORK = {
 
 # JWT CONFIGURACIÓN
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),  # 8 horas en lugar de 1 hora
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # 7 días en lugar de 1 día
     'BLACKLIST_ENABLED': True,
-    'ROTATE_REFRESH_TOKENS': False,
+    'ROTATE_REFRESH_TOKENS': True,  # Rotar refresh tokens por seguridad
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
+    'UPDATE_LAST_LOGIN': True,  # Actualizar último login
 }
 
 # INTERNACIONALIZACIÓN
