@@ -7,7 +7,7 @@ import django
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Set up Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend_salessmart.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend_salessmart.settings_production')
 django.setup()
 
 from users.models import User

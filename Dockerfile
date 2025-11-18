@@ -23,6 +23,8 @@ ENV DJANGO_SETTINGS_MODULE=backend_salessmart.settings_production
 EXPOSE 8080
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-CMD python3 setup_db.py && \
+CMD python3 manage.py migrate --settings=backend_salessmart.settings_production && \
+    python3 manage.py collectstatic --noinput --settings=backend_salessmart.settings_production && \
+    python3 create_admin.py && \
     daphne backend_salessmart.asgi:application --bind 0.0.0.0 --port $PORT
 
