@@ -1,9 +1,19 @@
 import os
-# NO importar settings.py completo para evitar conflictos de DATABASES
-from .settings import *
+from pathlib import Path
 
 # Configuración de producción para Google Cloud
 DEBUG = False
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Importar solo lo necesario de settings.py, NO toda la configuración
+from .settings import (
+    INSTALLED_APPS, MIDDLEWARE, ROOT_URLCONF, TEMPLATES, 
+    WSGI_APPLICATION, AUTH_PASSWORD_VALIDATORS, LANGUAGE_CODE,
+    TIME_ZONE, USE_I18N, USE_TZ, DEFAULT_AUTO_FIELD, AUTH_USER_MODEL,
+    REST_FRAMEWORK, SIMPLE_JWT, CORS_ALLOWED_HEADERS, CORS_ALLOWED_METHODS
+)
 
 # Obtener PROJECT_ID de las variables de entorno
 PROJECT_ID = os.environ.get('GOOGLE_CLOUD_PROJECT')
@@ -24,6 +34,12 @@ def get_secret(secret_name):
 
 # Configuración de seguridad
 SECRET_KEY = get_secret('django-secret-key') or 'fallback-secret-key-for-development'
+
+# Configuraciones adicionales necesarias
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Hosts permitidos
 ALLOWED_HOSTS = [
@@ -47,16 +63,7 @@ DATABASES = {
     }
 }
 
-# Verificar que la configuración de PostgreSQL se mantenga
-print(f"🔧 DATABASES configurado: {DATABASES['default']['ENGINE']}")
-
-# Configuración de archivos estáticos
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Configuración de archivos media
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Configuración de PostgreSQL establecida correctamente
 
 # Configuración de CORS para WEB y MÓVIL
 CORS_ALLOWED_ORIGINS = [
@@ -71,8 +78,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 
-# Para aplicación móvil, permitir todos los orígenes en desarrollo
-# En producción, la app móvil no envía Origin header
+# Para aplicación móvil, permitir todos los orígenes
 CORS_ALLOW_ALL_ORIGINS = True  # Necesario para aplicaciones móviles
 CORS_ALLOW_CREDENTIALS = True
 CORS_PREFLIGHT_MAX_AGE = 86400
@@ -175,6 +181,17 @@ LANGUAGE_CODE = 'es-es'
 USE_I18N = True
 USE_L10N = True
 
+# Configuración de WebSockets (para notificaciones en tiempo real)
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
+# ASGI Application
+ASGI_APPLICATION = 'backend_salessmart.asgi.application'
+
 print(f"🚀 Configuración de producción cargada para proyecto: {PROJECT_ID}")
 print(f"🔧 DEBUG: {DEBUG}")
 print(f"🗄️ Base de datos: PostgreSQL (Cloud SQL)")
+print(f"🔧 DATABASES configurado: {DATABASES['default']['ENGINE']}")
