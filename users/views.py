@@ -14,6 +14,10 @@ class UserCreateView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
     
+    def create(self, request, *args, **kwargs):
+        print(f"🔍 Datos recibidos en registro: {request.data}")
+        return super().create(request, *args, **kwargs)
+    
 class UserViewSet(viewsets.ModelViewSet):
     """
     Endpoint para Administradores para gestionar todos los usuarios (CU4).

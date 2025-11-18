@@ -13,25 +13,28 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)  # Removed 'role' to make it editable
 
     def create(self, validated_data):
-        role = validated_data.pop('role', 'CLIENT')  # Default to CLIENT
+        # Extraer campos adicionales
+        role = validated_data.pop('role', 'CLIENT')
         first_name = validated_data.pop('first_name', '')
         last_name = validated_data.pop('last_name', '')
         phone = validated_data.pop('phone', None)
         address = validated_data.pop('address', None)
 
+        # Crear usuario con campos básicos
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email'),
-            password=validated_data['password']
+            password=validated_data['password'],
+            first_name=first_name,  # Incluir first_name en create_user
+            last_name=last_name     # Incluir last_name en create_user
         )
 
+        # Asignar campos adicionales
         user.role = role
-        user.first_name = first_name
-        user.last_name = last_name
         user.phone = phone
         user.address = address
 
-        # Set is_staff and is_superuser based on role
+        # Configurar permisos según rol
         if role == 'ADMIN':
             user.is_superuser = True
             user.is_staff = True
