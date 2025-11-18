@@ -89,11 +89,18 @@ SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-# Configuración de sesiones
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Configuración de sesiones - Relajada para desarrollo
+SESSION_COOKIE_SECURE = False  # Cambiar a False para permitir HTTP
+CSRF_COOKIE_SECURE = False     # Cambiar a False para permitir HTTP
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False   # Cambiar a False para APIs
+
+# Configuración CSRF adicional
+CSRF_TRUSTED_ORIGINS = [
+    "https://smartsales-backend-783403173685.europe-west1.run.app",
+    "https://*.europe-west1.run.app",
+    "https://*.run.app",
+]
 
 # Configuración de logging para Cloud Run
 LOGGING = {

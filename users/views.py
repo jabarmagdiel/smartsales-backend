@@ -5,10 +5,13 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from .models import User
 from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer, UserManagementSerializer
 from .permissions import IsAdminUser, IsOperator
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -38,11 +41,13 @@ class ClientViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return User.objects.filter(role='CLIENT').order_by('username')
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
