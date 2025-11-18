@@ -39,11 +39,11 @@ if os.environ.get('GAE_APPLICATION', None):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'smartsales',
-            'USER': 'smartsales_user',
-            'PASSWORD': get_secret('database-password'),
-            'HOST': '/cloudsql/YOUR_CONNECTION_NAME',  # Reemplazar con CONNECTION_NAME real
-            'PORT': '5432',
+            'NAME': os.environ.get('DB_NAME', 'smartsales_db'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'KellyDuran2210*'),
+            'HOST': os.environ.get('DB_HOST', '34.38.132.155'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
         }
     }
 else:
