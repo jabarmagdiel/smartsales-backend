@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements-railway.txt requirements.txt
+COPY requirements.txt requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -23,7 +23,6 @@ ENV DJANGO_SETTINGS_MODULE=backend_salessmart.settings_production
 EXPOSE 8080
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-CMD python3 verify_db.py && \
-    python3 manage.py migrate --settings=backend_salessmart.settings_production --fake-initial && \
+CMD python3 setup_db.py && \
     daphne backend_salessmart.asgi:application --bind 0.0.0.0 --port $PORT
 

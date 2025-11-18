@@ -107,33 +107,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend_salessmart.wsgi.application'
 ASGI_APPLICATION = 'backend_salessmart.asgi.application'
 
-# BASE DE DATOS
-# Importación condicional de dj_database_url
-try:
-    import dj_database_url
-    HAS_DJ_DATABASE_URL = True
-except ImportError:
-    HAS_DJ_DATABASE_URL = False
-    print(" dj_database_url no disponible, usando configuración SQLite")
-
-if HAS_DJ_DATABASE_URL and os.getenv("DATABASE_URL"):
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv("DATABASE_URL"),
-            conn_max_age=600,
-            ssl_require=True
-        )
+# BASE DE DATOS - SOLO POSTGRESQL
+# Configuración base para desarrollo local (también PostgreSQL)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'smartsales_dev'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'password'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
-    print(" Base de datos: PostgreSQL (producción)")
-else:
-    # Fallback a SQLite para desarrollo
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-    print(" Base de datos: SQLite (desarrollo)")
+}
+print("📊 Base de datos: PostgreSQL (configuración base)")
 
 # USUARIO PERSONALIZADO
 AUTH_USER_MODEL = 'users.User'
