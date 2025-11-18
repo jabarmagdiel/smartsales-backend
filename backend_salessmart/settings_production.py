@@ -7,22 +7,13 @@ DEBUG = False
 # Obtener PROJECT_ID de las variables de entorno
 PROJECT_ID = os.environ.get('GOOGLE_CLOUD_PROJECT')
 
-# Función para obtener secretos de Google Secret Manager
-def get_secret(secret_name):
-    """Obtener secreto de Google Secret Manager"""
-    try:
-        from google.cloud import secretmanager
-        client = secretmanager.SecretManagerServiceClient()
-        name = f"projects/{PROJECT_ID}/secrets/{secret_name}/versions/latest"
-        response = client.access_secret_version(request={"name": name})
-        return response.payload.data.decode("UTF-8")
-    except Exception as e:
-        print(f"Error obteniendo secreto {secret_name}: {e}")
-        # Fallback a variables de entorno para desarrollo
-        return os.environ.get(secret_name.upper().replace('-', '_'))
+# Función simplificada para obtener configuración
+def get_config(key, default=None):
+    """Obtener configuración de variables de entorno"""
+    return os.environ.get(key, default)
 
-# Configuración de seguridad
-SECRET_KEY = get_secret('django-secret-key') or 'fallback-secret-key-for-development'
+# Configuración de seguridad - Usar variable de entorno directamente
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-in-production')
 
 # Configuraciones ya importadas de settings.py
 
@@ -39,13 +30,16 @@ ALLOWED_HOSTS = [
 
 # Configuración de CORS para WEB y MÓVIL
 CORS_ALLOWED_ORIGINS = [
-    # Frontend Web (Next.js)
-    "https://smartsales-frontend.vercel.app",  # Reemplazar con tu dominio frontend
+    # Frontend Web (Next.js) - Todas las posibles URLs
+    "https://smartsales-frontend.vercel.app",
+    "https://smartsales-frontend-git-main-miguels-projects.vercel.app", 
+    "https://smartsales-frontend-miguels-projects.vercel.app",
+    "https://nueva-version-smartsales-frontend.vercel.app",
     "https://smartsales-backend-783403173685.europe-west1.run.app",
-    "http://localhost:3000",  # Desarrollo local web
-    "http://127.0.0.1:3000",
     
-    # Para desarrollo local
+    # Desarrollo local
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
@@ -198,23 +192,30 @@ STATICFILES_STORAGE = (
 
 
 # ============================================================
-#  CONFIGURACIÓN DE GOOGLE CLOUD STORAGE PARA MEDIA
+#  CONFIGURACIÓN DE MEDIA - GOOGLE CLOUD STORAGE O LOCAL
 # ============================================================
 
-# Usa django-storages con Google Cloud
-DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+# Verificar si Google Cloud Storage está disponible
+USE_CLOUD_STORAGE = get_config('USE_CLOUD_STORAGE', 'false').lower() == 'true'
 
-# Nombre del bucket creado en Google Cloud Storage
-GS_BUCKET_NAME = "smartsales-media"   # <-- reemplazar si tu bucket se llama diferente
+if USE_CLOUD_STORAGE:
+    # Configuración de Google Cloud Storage
+    try:
+        DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+        GS_BUCKET_NAME = get_config('GS_BUCKET_NAME', 'smartsales-media')
+        GS_DEFAULT_ACL = "publicRead"
+        MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+        MEDIA_ROOT = None
+        print("📁 Usando Google Cloud Storage para media")
+    except Exception as e:
+        print(f"⚠️ Error configurando Google Cloud Storage: {e}")
+        USE_CLOUD_STORAGE = False
 
-# Todos los archivos que subas serán públicos
-GS_DEFAULT_ACL = "publicRead"
-
-# URL pública base para servir imágenes
-MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
-
-# Cloud Storage no usa MEDIA_ROOT
-MEDIA_ROOT = None
+if not USE_CLOUD_STORAGE:
+    # Configuración local para media
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    print("📁 Usando almacenamiento local para media")
 
 
 # ============================================================
@@ -228,21 +229,7 @@ DEBUG = False
 #  MOSTRAR CONFIGURACIÓN EN LOGS (Opcional)
 # ============================================================
 
-print("====== CONFIGURACIÓN DE PRODUCCIÓN CARGADA ======")
-print("DEBUG:", DEBUG)
-print("STATIC_URL:", STATIC_URL)
-print("STATIC_ROOT:", STATIC_ROOT)
-print("MEDIA_URL:", MEDIA_URL)
-print("BUCKET:", GS_BUCKET_NAME)
-print("================================================")
-
-
-# Configuración de WhiteNoise para archivos estáticos
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-print(f"🚀 Configuración de producción cargada para proyecto: {PROJECT_ID}")
+print("🚀 Configuración de producción cargada")
 print(f"🔧 DEBUG: {DEBUG}")
-print(f"🗄️ Base de datos: PostgreSQL (Cloud SQL) - FORZADO")
-print(f"🔧 DATABASES final: {DATABASES['default']['ENGINE']}")
+print(f"🗄️ Base de datos: PostgreSQL (Cloud SQL)")
 print(f"📁 MEDIA_URL: {MEDIA_URL}")
-print(f"📁 MEDIA_ROOT: {MEDIA_ROOT}")

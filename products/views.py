@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db import transaction
 from .models import Category, Product, Price, InventoryMovement
 from .serializers import CategorySerializer, ProductSerializer, PriceSerializer, InventoryMovementSerializer
@@ -15,12 +15,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
     
     def get_permissions(self):
         """
-        Permitir a todos los usuarios autenticados ver categorías (GET),
+        Permitir a TODOS ver categorías (GET) sin autenticación,
         pero solo admins pueden crear/modificar/eliminar
         """
         if self.action in ['list', 'retrieve']:
-            # Cualquier usuario autenticado puede ver categorías
-            permission_classes = [IsAuthenticated]
+            # CUALQUIERA puede ver categorías (sin autenticación)
+            permission_classes = [AllowAny]
         else:
             # Solo admins pueden crear/modificar/eliminar categorías
             permission_classes = [IsAuthenticated, IsAdminUser]
@@ -33,12 +33,12 @@ class ProductViewSet(viewsets.ModelViewSet):
     
     def get_permissions(self):
         """
-        Permitir a todos los usuarios autenticados ver productos (GET),
+        Permitir a TODOS ver productos (GET) sin autenticación,
         pero solo admins/operadores pueden crear/modificar/eliminar
         """
         if self.action in ['list', 'retrieve']:
-            # Cualquier usuario autenticado puede ver productos
-            permission_classes = [IsAuthenticated]
+            # CUALQUIERA puede ver productos (sin autenticación)
+            permission_classes = [AllowAny]
         else:
             # Solo admins pueden crear/modificar/eliminar productos
             permission_classes = [IsAuthenticated, IsAdminUser]
