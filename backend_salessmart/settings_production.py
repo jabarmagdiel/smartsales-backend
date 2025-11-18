@@ -1,19 +1,8 @@
 import os
-from pathlib import Path
+from .settings import *
 
 # Configuración de producción para Google Cloud
 DEBUG = False
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Importar solo lo necesario de settings.py, NO toda la configuración
-from .settings import (
-    INSTALLED_APPS, MIDDLEWARE, ROOT_URLCONF, TEMPLATES, 
-    WSGI_APPLICATION, AUTH_PASSWORD_VALIDATORS, LANGUAGE_CODE,
-    TIME_ZONE, USE_I18N, USE_TZ, DEFAULT_AUTO_FIELD, AUTH_USER_MODEL,
-    REST_FRAMEWORK, SIMPLE_JWT, CORS_ALLOWED_HEADERS, CORS_ALLOWED_METHODS
-)
 
 # Obtener PROJECT_ID de las variables de entorno
 PROJECT_ID = os.environ.get('GOOGLE_CLOUD_PROJECT')
@@ -35,11 +24,7 @@ def get_secret(secret_name):
 # Configuración de seguridad
 SECRET_KEY = get_secret('django-secret-key') or 'fallback-secret-key-for-development'
 
-# Configuraciones adicionales necesarias
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Configuraciones ya importadas de settings.py
 
 # Hosts permitidos
 ALLOWED_HOSTS = [
@@ -50,20 +35,7 @@ ALLOWED_HOSTS = [
     '0.0.0.0',
 ]
 
-# Configuración de base de datos para Cloud SQL
-# FORZAR PostgreSQL - redefinir después de importar settings.py
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'smartsales_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'KellyDuran2210*'),
-        'HOST': os.environ.get('DB_HOST', '34.38.132.155'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
-}
-
-# Configuración de PostgreSQL establecida correctamente
+# Configuración de base de datos se define al final del archivo
 
 # Configuración de CORS para WEB y MÓVIL
 CORS_ALLOWED_ORIGINS = [
@@ -191,7 +163,19 @@ CHANNEL_LAYERS = {
 # ASGI Application
 ASGI_APPLICATION = 'backend_salessmart.asgi.application'
 
+# FORZAR PostgreSQL - SOBRESCRIBIR cualquier configuración anterior
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'smartsales_db'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'KellyDuran2210*'),
+        'HOST': os.environ.get('DB_HOST', '34.38.132.155'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+    }
+}
+
 print(f"🚀 Configuración de producción cargada para proyecto: {PROJECT_ID}")
 print(f"🔧 DEBUG: {DEBUG}")
-print(f"🗄️ Base de datos: PostgreSQL (Cloud SQL)")
-print(f"🔧 DATABASES configurado: {DATABASES['default']['ENGINE']}")
+print(f"🗄️ Base de datos: PostgreSQL (Cloud SQL) - FORZADO")
+print(f"🔧 DATABASES final: {DATABASES['default']['ENGINE']}")
