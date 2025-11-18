@@ -67,6 +67,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CORS_ALLOWED_ORIGINS = [
     # Frontend Web (Next.js)
     "https://smartsales-frontend.vercel.app",  # Reemplazar con tu dominio frontend
+    "https://smartsales-backend-783403173685.europe-west1.run.app",
     "http://localhost:3000",  # Desarrollo local web
     "http://127.0.0.1:3000",
     
