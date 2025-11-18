@@ -18,11 +18,10 @@ COPY . .
 
 ENV PORT=8080
 ENV FORCE_POSTGRESQL=true
+ENV DJANGO_SETTINGS_MODULE=backend_salessmart.settings_production
 
 EXPOSE 8080
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-CMD python3 check_migrations.py && \
-    python3 manage.py collectstatic --noinput --settings=backend_salessmart.settings_production && \
-    daphne backend_salessmart.asgi:application --bind 0.0.0.0 --port $PORT
+CMD daphne backend_salessmart.asgi:application --bind 0.0.0.0 --port $PORT
 
