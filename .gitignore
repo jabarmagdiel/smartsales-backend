@@ -1,27 +1,50 @@
-# Python / Entorno Virtual
-__pycache__/
 *.pyc
-*.pyo
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.env
 .venv
 venv/
-env/
-
-# Credenciales y Logs
-.env  # CRÍTICO: No subir variables de entorno con credenciales
+ENV/
+db.sqlite3
+db.sqlite3-journal
 *.log
 local_settings.py
-
-# Django
-db.sqlite3
-/media
-/static
-
-# IDE/Editor (VS Code)
+.idea/
 .vscode/
-
-# Railway
-.railway/
-
-# Archivos temporales
-*.tmp
-*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+media/
+staticfiles/
+staticfiles_collected/
+*.pem
+*.key
+google-services.json
+GoogleService-Info.plist
+firebase_credentials.json
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+node_modules/
