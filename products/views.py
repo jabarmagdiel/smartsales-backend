@@ -1,10 +1,12 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db import transaction
-from .models import Category, Product, Price, InventoryMovement
-from .serializers import CategorySerializer, ProductSerializer, PriceSerializer, InventoryMovementSerializer
+from django.db.models import Q
+from .models import Category, Product, Price, InventoryMovement, Review
+from .serializers import (CategorySerializer, ProductSerializer,ProductDetailSerializer,
+                         PriceSerializer, InventoryMovementSerializer, ReviewSerializer)
 from users.permissions import IsAdminUser, IsOperator
 from logs.models import LogEntry
 
@@ -44,8 +46,50 @@ class ProductViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated, IsAdminUser]
         return [permission() for permission in permission_classes]
 
+    
     def get_queryset(self):
-        return Product.objects.prefetch_related('atributos')
+        queryset = Product.objects.prefetch_related('atributos', 'reviews')
+        
+        # Filtro de búsqueda
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(description__icontains=search) |
+                Q(sku__icontains=search)
+            )
+        
+        # Filtro por categoría
+        category = self.request.query_params.get('category', None)
+        if category:
+            queryset = queryset.filter(category_id=category)
+        
+        # Filtro por rango de precio
+        min_price = self.request.query_params.get('min_price', None)
+        max_price = self.request.query_params.get('max_price', None)
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+        
+        # Filtro por disponibilidad
+        in_stock = self.request.query_params.get('in_stock', None)
+        if in_stock and in_stock.lower() == 'true':
+            queryset = queryset.filter(stock__gt=0)
+        
+        # Ordenamiento
+        ordering = self.request.query_params.get('ordering', None)
+        if ordering:
+            # Soportar: price, -price, name, -name, created_at, -created_at
+            queryset = queryset.order_by(ordering)
+        
+        return queryset
+    
+    def get_serializer_class(self):
+        """Usar ProductDetailSerializer para retrieve con reseñas"""
+        if self.action == 'retrieve':
+            return ProductDetailSerializer
+        return ProductSerializer
 
     def _get_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -189,3 +233,98 @@ class InventoryMovementViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(movement)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gestionar reseñas de productos
+    - list: Ver todas las reseñas (opcionalmente filtradas por producto)
+    - create: Crear una nueva reseña (requiere autenticación)
+    - retrieve: Ver una reseña específica
+    - update/partial_update: Actualizar propia reseña
+    - destroy: Eliminar propia reseña
+    """
+    queryset = Review.objects.all().select_related('product', 'user')
+    serializer_class = ReviewSerializer
+    
+    def get_permissions(self):
+        """
+        Todos pueden ver reseñas (GET), 
+        solo usuarios autenticados pueden crear/modificar/eliminar
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+    
+    def get_queryset(self):
+        """Filtrar reseñas por producto si se especifica"""
+        queryset = Review.objects.all().select_related('product', 'user')
+        
+        # Filtrar por producto
+        product_id = self.request.query_params.get('product', None)
+        if product_id:
+            queryset = queryset.filter(product_id=product_id)
+        
+        # Filtrar por rating
+        rating = self.request.query_params.get('rating', None)
+        if rating:
+            queryset = queryset.filter(rating=rating)
+        
+        # Ordenar por más recientes por defecto
+        return queryset.order_by('-created_at')
+    
+    def perform_create(self, serializer):
+        """Guardar reseña con el usuario actual"""
+        review = serializer.save(user=self.request.user)
+        try:
+            LogEntry.objects.create(
+                ip_address=self._get_ip(self.request) or 'IP_UNKNOWN',
+                user=self.request.user,
+                action=f"Reseña creada product_id={review.product.id} rating={review.rating} user={self.request.user.username}"
+            )
+        except Exception:
+            pass
+    
+    def perform_update(self, serializer):
+        """Solo permitir actualizar propias reseñas"""
+        if serializer.instance.user != self.request.user and not self.request.user.is_staff:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Solo puedes editar tus propias reseñas")
+        
+        review = serializer.save()
+        try:
+            LogEntry.objects.create(
+                ip_address=self._get_ip(self.request) or 'IP_UNKNOWN',
+                user=self.request.user,
+                action=f"Reseña actualizada id={review.id} product_id={review.product.id}"
+            )
+        except Exception:
+            pass
+    
+    def perform_destroy(self, instance):
+        """Solo permitir eliminar propias reseñas"""
+        if instance.user != self.request.user and not self.request.user.is_staff:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Solo puedes eliminar tus propias reseñas")
+        
+        review_id = instance.id
+        product_id = instance.product.id
+        instance.delete()
+        
+        try:
+            LogEntry.objects.create(
+                ip_address=self._get_ip(self.request) or 'IP_UNKNOWN',
+                user=self.request.user,
+                action=f"Reseña eliminada id={review_id} product_id={product_id}"
+            )
+        except Exception:
+            pass
+    
+    def _get_ip(self, request):
+        """Helper para obtener IP del cliente"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            return x_forwarded_for.split(',')[0]
+        return request.META.get('REMOTE_ADDR')
+

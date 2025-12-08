@@ -2,24 +2,22 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 class Command(BaseCommand):
-    help = "Crea un superusuario para producción"
+    help = "Crea el usuario admin para producción"
 
     def handle(self, *args, **kwargs):
         User = get_user_model()
         username = "admin"
 
-        # Si existe, eliminar
         try:
-            u = User.objects.get(username=username)
-            u.delete()
-            print("Superusuario anterior eliminado.")
+            existing = User.objects.get(username=username)
+            existing.delete()
+            print("Usuario admin previo eliminado.")
         except User.DoesNotExist:
-            print("No existía un admin previo.")
+            pass
 
-        # Crear nuevo superusuario
         user = User.objects.create_superuser(
             username="admin",
-            email="admin@admin.com",
+            email="admin@smartsales.com",
             password="admin123"
         )
 
@@ -27,4 +25,4 @@ class Command(BaseCommand):
         user.is_active = True
         user.save()
 
-        print("Superusuario creado correctamente → admin / admin123")
+        print("Superusuario creado correctamente.")

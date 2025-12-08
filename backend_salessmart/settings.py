@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'reportes',
     'ia',
     'reports',
+    'notifications',
 ]
 
 # MIDDLEWARE
@@ -107,19 +108,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend_salessmart.wsgi.application'
 ASGI_APPLICATION = 'backend_salessmart.asgi.application'
 
-# BASE DE DATOS - SOLO POSTGRESQL
-# Configuración base para desarrollo local (también PostgreSQL)
+# BASE DE DATOS - DESARROLLO CON SQLITE
+# Configuración temporal para desarrollo local
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'smartsales_dev'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'password'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-print("📊 Base de datos: PostgreSQL (configuración base)")
+print("📊 Base de datos: SQLite (desarrollo local)")
 
 # USUARIO PERSONALIZADO
 AUTH_USER_MODEL = 'users.User'
@@ -170,6 +167,9 @@ USE_TZ = True
 
 # CONFIGURACIÓN ADICIONAL
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# FIREBASE CLOUD MESSAGING
+FCM_SERVER_KEY = os.environ.get('FCM_SERVER_KEY', 'TU_SERVER_KEY_AQUI')
 
 # LOGGING
 LOGGING = {

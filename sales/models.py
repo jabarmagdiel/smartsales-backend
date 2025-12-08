@@ -49,6 +49,7 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
     address = models.TextField()
+    estimated_delivery = models.DateTimeField(null=True, blank=True, help_text="Fecha estimada de entrega")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -205,3 +206,23 @@ class Return(models.Model):
             action=f"Devolución #{self.id} rechazada - Producto: {self.order_item.product.name} - Razón: {reason}",
             ip_address='SYSTEM'
         )
+
+class OrderTracking(models.Model):
+    """
+    Modelo para rastrear el historial de estados de una orden
+    """
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tracking_history')
+    status = models.CharField(max_length=10, choices=Order.STATUS_CHOICES)
+    location = models.CharField(max_length=200, blank=True, help_text="Ubicación actual del pedido")
+    notes = models.TextField(blank=True, help_text="Notas adicionales sobre el estado")
+    timestamp = models.DateTimeField(auto_now_add=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='order_tracking_updates')
+    
+    class Meta:
+        ordering = ['timestamp']
+        verbose_name = 'Seguimiento de Pedido'
+        verbose_name_plural = 'Seguimientos de Pedidos'
+    
+    def __str__(self):
+        return f"Order #{self.order.id} - {self.get_status_display()} - {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+

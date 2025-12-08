@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Cart, CartItem, Order, OrderItem, Payment, Return
+from .models import Cart, CartItem, Order, OrderItem, Payment, Return, OrderTracking
 from products.models import Product
 
 class ProductCompactSerializer(serializers.ModelSerializer):
@@ -37,24 +37,40 @@ class CartSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
+    product_image = serializers.ImageField(source='product.image', read_only=True)
     subtotal = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
-        fields = ('id', 'product', 'product_name', 'quantity', 'price', 'subtotal')
+        fields = ('id', 'product', 'product_name', 'product_image', 'quantity', 'price', 'subtotal')
         read_only_fields = ('id',)
 
     def get_subtotal(self, obj):
         return obj.subtotal
 
+class OrderTrackingSerializer(serializers.ModelSerializer):
+    """Serializer para el historial de tracking de órdenes"""
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    updated_by_name = serializers.CharField(source='updated_by.get_full_name', read_only=True, allow_null=True)
+    
+    class Meta:
+        model = OrderTracking
+        fields = ('id', 'order', 'status', 'status_display', 'location', 'notes', 
+                 'timestamp', 'updated_by', 'updated_by_name')
+        read_only_fields = ('id', 'timestamp')
+
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     payment_method_display = serializers.CharField(source='get_payment_method_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    tracking_history = OrderTrackingSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
-        fields = ('id', 'user', 'status', 'payment_method', 'payment_method_display', 'total', 'shipping_cost', 'address', 'items', 'created_at', 'updated_at')
-        read_only_fields = ('user', 'created_at', 'updated_at')
+        fields = ('id', 'user', 'status', 'status_display', 'payment_method', 'payment_method_display', 
+                 'total', 'shipping_cost', 'address', 'estimated_delivery', 'items', 'tracking_history',
+                 'created_at', 'updated_at')
+        read_only_fields = ('user', 'created_at', 'updated_at', 'tracking_history')
 
 class CheckoutSerializer(serializers.Serializer):
     shipping_address = serializers.CharField()
