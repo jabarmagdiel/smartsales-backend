@@ -50,7 +50,7 @@ urlpatterns = [
     path('api/v1/', include('logs.urls')),
     path('api/v1/reportes/', include('reportes.urls')),
     path('api/v1/ia/', include('ia.urls')),
-    path('api/v1/', include('notifications.urls')),
+    # path('api/v1/', include('notifications.urls')),  # TODO: Implementar sistema de notificaciones
     # System backups
     path('api/v1/system/backups/', views.list_backups, name='list_backups'),
     path('api/v1/system/backups/create/', views.create_backup, name='create_backup'),
