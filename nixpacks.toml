@@ -4,7 +4,6 @@ python = "3.11"
 [variables]
 DJANGO_SETTINGS_MODULE = "backend_salessmart.settings_railway"
 PYTHONPATH = "."
-PORT = "8000"
 
 [phases.setup]
 nixPkgs = [
@@ -33,4 +32,4 @@ cmds = [
 ]
 
 [start]
-cmd = "gunicorn backend_salessmart.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --keep-alive 5"
+cmd = "gunicorn backend_salessmart.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level info"
