@@ -14,6 +14,7 @@ ALLOWED_HOSTS = [
     "smartsales-backend-783403173685.europe-west1.run.app",
     ".europe-west1.run.app",
     ".run.app",
+    ".railway.app",
     "localhost",
     "127.0.0.1",
 ]
@@ -69,7 +70,7 @@ INSTALLED_APPS = [
     'reportes',
     'ia',
     'reports',
-    'notifications',
+    # 'notifications',  # TODO: Implementar sistema de notificaciones
 ]
 
 # MIDDLEWARE
